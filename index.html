@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Qubit Path - Quantum Lab</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- React & ReactDOM (UMD) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Framer Motion (UMD) -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Babel standalone for in-browser JSX parsing -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body { margin: 0; padding: 0; background: #e2e8f0; overflow-x: hidden; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel" data-type="module">
+const {  useState, useEffect, useRef, useCallback  } = React;
+
+// ─── 20 Levels ─────────────────────────────────────────────
+const LEVELS = [
+  { id:1, title:"The Flip", tier:"basics", slots:4, startState:"zero", target:"one", gates:["X","H"], hint:"One flip is all you need.", briefing:"The qubit starts in |0⟩. Flip it to |1⟩ — a single gate will do.", solution:"The X gate acts like a NOT gate — it flips |0⟩ to |1⟩. This is the simplest quantum operation.", hasNoise:false, noiseSlot:null, linked:false, linkType:null, minGates:0, ans:["X",null,null,null] },
+  { id:2, title:"The Blur", tier:"basics", slots:4, startState:"zero", target:"superposition", gates:["X","H"], hint:"The Hadamard creates superposition.", briefing:"Put the qubit into superposition — existing in both states at once.", solution:"The Hadamard gate creates an equal superposition of |0⟩ and |1⟩ — 50/50 probability of measuring either state.", hasNoise:false, noiseSlot:null, linked:false, linkType:null, minGates:0, ans:["H",null,null,null] },
+  { id:3, title:"The Return", tier:"basics", slots:4, startState:"one", target:"zero", gates:["X","H"], hint:"Watch out for noise in slot 3.", briefing:"Starting from |1⟩, return to |0⟩. Beware: slot 3 has quantum noise that corrupts unshielded qubits.", solution:"X applied to |1⟩ gives |0⟩. Placing a gate in the noise slot shields against decoherence — a real challenge!", hasNoise:true, noiseSlot:2, linked:false, linkType:null, minGates:0, ans:[null,null,"X",null] },
+  { id:4, title:"Phase Flip", tier:"phase", slots:4, startState:"super_plus", target:"super_minus", gates:["X","H","Z"], hint:"Z flips the phase, not the probability.", briefing:"The qubit begins in |+⟩. Transform it to |−⟩. Same probabilities, different phase.", solution:"The Z gate negates the |1⟩ amplitude. In superposition, (|0⟩+|1⟩)/√2 becomes (|0⟩−|1⟩)/√2 — fundamentally different quantum information!", hasNoise:false, noiseSlot:null, linked:false, linkType:null, minGates:0, ans:["Z",null,null,null] },
+  { id:5, title:"Hidden Identity", tier:"phase", slots:4, startState:"zero", target:"zero", gates:["X","H","Z"], hint:"Some gate combinations cancel out.", briefing:"Return to |0⟩ using at least 2 gates. Discover which combinations form the identity.", solution:"H·H = Identity! Two Hadamard gates cancel each other out — H is its own inverse (involutory).", hasNoise:false, noiseSlot:null, linked:false, linkType:null, minGates:2, ans:["H","H",null,null] },
+  { id:6, title:"The Z Detour", tier:"phase", slots:5, startState:"zero", target:"one", gates:["H","Z"], hint:"H-Z-H behaves like X.", briefing:"Reach |1⟩ from |0⟩ using only H and Z gates. No X gate — discover a fundamental identity.", solution:"H·Z·H = X! The Z gate sandwiched between Hadamards produces a bit flip. Foundational to quantum circuit design.", hasNoise:false, noiseSlot:null, linked:false, linkType:null, minGates:0, ans:["H","Z","H",null,null] },
+  { id:7, title:"Phase Precision", tier:"phase", slots:5, startState:"one", target:"super_minus", gates:["X","H","Z"], hint:"Hadamard on |1⟩ gives a minus phase.", briefing:"Transform |1⟩ into |−⟩ = (|0⟩−|1⟩)/√2.", solution:"H|1⟩ = (|0⟩−|1⟩)/√2. The Hadamard on |1⟩ naturally creates the minus superposition — key to quantum algorithms!", hasNoise:false, noiseSlot:null, linked:false, linkType:null, minGates:0, ans:["H",null,null,null,null] },
+  { id:8, title:"Interference", tier:"mastery", slots:5, startState:"zero", target:"one", gates:["H","Z"], hint:"Use interference — no X gate available.", briefing:"Reach |1⟩ without the X gate. Quantum interference lets H and Z combine. Noise in slot 2.", solution:"H·Z·H = X. Quantum interference lets H and Z produce a bit flip — the wave-like nature of quantum states!", hasNoise:true, noiseSlot:1, linked:false, linkType:null, minGates:0, ans:["H","Z","H",null,null] },
+  { id:9, title:"Double Negative", tier:"mastery", slots:6, startState:"zero", target:"zero", gates:["X","H","Z"], hint:"Stack operations that undo each other.", briefing:"Return to |0⟩ using at least 4 gates. Every gate has an inverse.", solution:"Quantum gates are reversible: X·X = I, H·H = I, Z·Z = I. Quantum computing never destroys information.", hasNoise:false, noiseSlot:null, linked:false, linkType:null, minGates:4, ans:["H","H","H","H",null,null] },
+  { id:10, title:"The Long Way Round", tier:"mastery", slots:6, startState:"one", target:"zero", gates:["H","Z"], hint:"Travel through superposition to get home.", briefing:"Transform |1⟩ to |0⟩ using only H and Z. Noise in slot 4.", solution:"H→Z→H takes the scenic route through superposition — quantum detours reach unexpected destinations.", hasNoise:true, noiseSlot:3, linked:false, linkType:null, minGates:0, ans:[null,null,"H","Z","H",null] },
+  { id:11, title:"Superposition Sculptor", tier:"mastery", slots:6, startState:"zero", target:"super_minus", gates:["H","Z"], hint:"Build |−⟩ from scratch with H and Z.", briefing:"Craft the minus superposition |−⟩ from |0⟩.", solution:"H creates |+⟩, then Z flips phase to |−⟩. Sculpting quantum states = choosing the right sequence.", hasNoise:false, noiseSlot:null, linked:false, linkType:null, minGates:0, ans:["H","Z",null,null,null,null] },
+  { id:12, title:"State Recycler", tier:"mastery", slots:6, startState:"super_plus", target:"one", gates:["X","H","Z"], hint:"Collapse, then transform.", briefing:"Starting in |+⟩, reach |1⟩. Noise in slot 3.", solution:"H collapses |+⟩ to |0⟩, then X flips to |1⟩. The rhythm of quantum algorithms.", hasNoise:true, noiseSlot:2, linked:false, linkType:null, minGates:0, ans:["H","Z","X",null,null,null] },
+  { id:13, title:"Quantum Link", tier:"entangle", slots:5, startState:"zero", target:"one", gates:["X","H","Z"], hint:"Your linked qubit mirrors every move.", briefing:"A linked qubit mirrors your state. Flip to |1⟩ and watch entanglement.", solution:"In entanglement, measuring one qubit instantly determines the other — spooky action at a distance!", hasNoise:false, noiseSlot:null, linked:true, linkType:"mirror", minGates:0, ans:["X",null,null,null,null] },
+  { id:14, title:"Opposite Day", tier:"entangle", slots:5, startState:"zero", target:"superposition", gates:["X","H","Z"], hint:"The linked qubit does the opposite.", briefing:"Anti-correlated entanglement: the partner is always in the opposite state.", solution:"When yours is |0⟩, the partner is |1⟩. In superposition, both exist in complementary states!", hasNoise:false, noiseSlot:null, linked:true, linkType:"oppose", minGates:0, ans:["H",null,null,null,null] },
+  { id:15, title:"Entangled Escape", tier:"entangle", slots:6, startState:"one", target:"zero", gates:["X","H","Z"], hint:"Both qubits feel the noise.", briefing:"Escape |1⟩ to |0⟩ with a mirroring partner. Noise in slot 4.", solution:"Noise affects entangled pairs together. Protecting one preserves the correlation — basis of error correction!", hasNoise:true, noiseSlot:3, linked:true, linkType:"mirror", minGates:0, ans:[null,null,null,"X",null,null] },
+  { id:16, title:"Linked Precision", tier:"entangle", slots:6, startState:"zero", target:"super_minus", gates:["H","Z"], hint:"Phase matters for entangled pairs.", briefing:"Build |−⟩ while maintaining anti-correlation.", solution:"Phase relationships between entangled qubits encode information. Z changes this without breaking entanglement!", hasNoise:false, noiseSlot:null, linked:true, linkType:"oppose", minGates:0, ans:["H","Z",null,null,null,null] },
+  { id:17, title:"Oracle Query", tier:"algorithm", slots:6, startState:"zero", target:"one", gates:["X","H","Z"], hint:"H → Oracle → H reveals the answer.", briefing:"The Deutsch algorithm: superpose, query, then measure.", solution:"The Deutsch algorithm! H → process → H. The measurement reveals the oracle's nature — quantum parallelism!", hasNoise:false, noiseSlot:null, linked:false, linkType:null, minGates:0, ans:["H","Z","H",null,null,null] },
+  { id:18, title:"Signal Amplifier", tier:"algorithm", slots:7, startState:"zero", target:"one", gates:["H","Z"], hint:"Amplify with repeated H-Z-H.", briefing:"Amplitude amplification — Grover's search core. Noise in slot 3.", solution:"H-Z-H sequences amplify the correct state — amplitude amplification, the heart of quantum search!", hasNoise:true, noiseSlot:2, linked:false, linkType:null, minGates:0, ans:[null,"H","Z","H",null,null,null] },
+  { id:19, title:"Quantum Shortcut", tier:"algorithm", slots:7, startState:"one", target:"super_plus", gates:["X","H","Z"], hint:"Combine everything you've learned.", briefing:"All tools, all mechanics. Linked qubit watches. Noise in slot 5.", solution:"Real quantum algorithms chain bit flips, phase flips, superposition, and error protection. You're thinking quantum!", hasNoise:true, noiseSlot:4, linked:true, linkType:"mirror", minGates:0, ans:[null,null,null,"H","Z",null,null] },
+  { id:20, title:"Quantum Master", tier:"algorithm", slots:8, startState:"zero", target:"zero", gates:["X","H","Z"], hint:"The ultimate circuit — transform and return.", briefing:"Final challenge: 6+ gates, transform and return to |0⟩. Noise + entanglement.", solution:"Congratulations, Quantum Master! A reversible circuit — the essence of quantum computation. Every transformation can be undone!", hasNoise:true, noiseSlot:3, linked:true, linkType:"oppose", minGates:6, ans:["X","X","H","Z","Z","H",null,null] },
+];
+
+const TIER_COLORS = { basics:"#0284c7", phase:"#8b5cf6", mastery:"#3b82f6", entangle:"#ec4899", algorithm:"#ea580c" };
+const TIER_NAMES = { basics:"Basics", phase:"Phase & Z-Gate", mastery:"Superposition Mastery", entangle:"Entanglement", algorithm:"Algorithms" };
+
+// ─── Quantum Engine ────────────────────────────────────────
+const S2 = Math.SQRT2, IS2 = 1/S2;
+const mk = (s) => s==="one"?{t:"d",v:1}:s==="super_plus"?{t:"s",a:IS2,b:IS2}:s==="super_minus"?{t:"s",a:IS2,b:-IS2}:{t:"d",v:0};
+const ag = (st,g) => {
+  if(g==="X"){if(st.t==="d")return{t:"d",v:st.v^1};return{t:"s",a:st.b,b:st.a};}
+  if(g==="H"){if(st.t==="d"){return st.v===0?{t:"s",a:IS2,b:IS2}:{t:"s",a:IS2,b:-IS2};}const na=(st.a+st.b)*IS2,nb=(st.a-st.b)*IS2;if(Math.abs(nb)<.001)return{t:"d",v:0};if(Math.abs(na)<.001)return{t:"d",v:1};return{t:"s",a:na,b:nb};}
+  if(g==="Z"){if(st.t==="d")return st;return{t:"s",a:st.a,b:-st.b};}
+  return st;
+};
+const nz = (st) => st.t==="d"?Math.random()<.4?{t:"s",a:.8,b:.6}:st:{t:"s",a:.6+Math.random()*.3,b:.5+Math.random()*.3};
+const vi = (st) => st.t==="d"?(st.v===0?"zero":"one"):"super";
+const mt = (st,tgt) => {
+  if(tgt==="zero")return st.t==="d"&&st.v===0;if(tgt==="one")return st.t==="d"&&st.v===1;
+  if(tgt==="superposition")return st.t==="s"&&Math.abs(st.a)>.001&&Math.abs(st.b)>.001;
+  if(tgt==="super_plus")return st.t==="s"&&st.b>.001;if(tgt==="super_minus")return st.t==="s"&&st.b<-.001;return false;
+};
+const tb = (st) => st.t==="d"?(st.v===0?{th:0,ph:0}:{th:Math.PI,ph:0}):{th:2*Math.acos(Math.min(1,Math.abs(st.a))),ph:st.b<0?Math.PI:0};
+const lk = (st,tp) => tp==="mirror"?{...st}:st.t==="d"?{t:"d",v:st.v^1}:{t:"s",a:st.b,b:st.a};
+
+// ─── Particle System ───────────────────────────────────────
+const useBurst = () => {
+  const [bs,setBs]=useState([]);const id=useRef(0);
+  const fire=useCallback((x,y,c,count=16)=>{
+    const bid=id.current++;
+    const pts=Array.from({length:count},(_,i)=>({i,a:(i/count)*360+Math.random()*20,d:20+Math.random()*50,sz:2+Math.random()*4,dur:300+Math.random()*300}));
+    setBs(p=>[...p,{id:bid,x,y,c,pts}]);setTimeout(()=>setBs(p=>p.filter(e=>e.id!==bid)),800);
+  },[]);
+  return{bs,fire};
+};
+
+// ─── Orb ───────────────────────────────────────────────────
+const Orb=({v,size,className="",anim=true,trail=false})=>{
+  const isSup=v==="super",isOne=v==="one";
+  return(
+    <div className={`relative flex-shrink-0 ${className}`} style={size?{width:size,height:size}:{}}>
+      {/* Light trail / comet tail */}
+      {trail&&<div className="absolute rounded-full" style={{width:"180%",height:"70%",right:"30%",top:"15%",background:`radial-gradient(ellipse at 30% 50%,${isSup?"rgba(168,85,247,0.4)":isOne?"rgba(239,68,68,0.4)":"rgba(6,182,212,0.4)"},transparent 70%)`,filter:"blur(8px)",animation:"trailPulse 1s ease-in-out infinite",pointerEvents:"none"}}/>}
+      {/* Ghost trails for superposition */}
+      {isSup&&anim&&<>
+        <div className="absolute inset-0 rounded-full" style={{background:"radial-gradient(circle at 35% 35%,rgba(6,182,212,0.5),transparent 65%)",filter:"blur(4px)",animation:"gh1 1s ease-in-out infinite"}}/>
+        <div className="absolute inset-0 rounded-full" style={{background:"radial-gradient(circle at 65% 65%,rgba(168,85,247,0.4),transparent 65%)",filter:"blur(4px)",animation:"gh2 1s ease-in-out infinite"}}/>
+      </>}
+      {/* Core plasma sphere */}
+      <div className="absolute inset-0 rounded-full" style={{
+        background:isSup
+          ?"radial-gradient(circle at 38% 35%,#ffffff 0%,#c084fc 15%,#818cf8 35%,#0284c7 60%,#7c3aed 100%)"
+          :isOne
+          ?"radial-gradient(circle at 38% 35%,#ffffff 0%,#fca5a5 12%,#ef4444 35%,#dc2626 70%,#991b1b 100%)"
+          :"radial-gradient(circle at 38% 35%,#ffffff 0%,#a5f3fc 12%,#0ea5e9 35%,#0891b2 70%,#155e75 100%)",
+        boxShadow:"0 2px 5px rgba(0,0,0,0.25), inset 0 0 10px rgba(255,255,255,0.8)",
+        transition:"all 0.5s cubic-bezier(0.4,0,0.2,1)",
+        animation:anim?(isSup?"orbV 0.12s ease-in-out infinite":"orbB 3s ease-in-out infinite"):"none",
+      }}>
+        <div className="absolute rounded-full bg-white" style={{top:"16%",left:"24%",width:"22%",height:"14%",opacity:0.7,filter:"blur(2px)",transform:"rotate(-15deg)"}}/>
+        <div className="absolute rounded-full bg-white" style={{top:"24%",left:"32%",width:"10%",height:"8%",opacity:0.9,filter:"blur(1px)"}}/>
+      </div>
+    </div>
+  );
+};
+
+// ─── Bloch Sphere ──────────────────────────────────────────
+const Bloch=({th,ph,v})=>{
+  const r=44,cx=56,cy=56;
+  const py=-Math.cos(th)*r, px=Math.sin(th)*Math.cos(ph)*r*0.65;
+  const col=v==="zero"?"#0ea5e9":v==="one"?"#ef4444":"#a78bfa";
+  return(
+    <svg viewBox="0 0 112 112" className="w-[85px] h-[85px] md:w-[112px] md:h-[112px]">
+      <defs>
+        <radialGradient id="bBg" cx="45%" cy="38%" r="55%"><stop offset="0%" stopColor="rgba(255,255,255,0.9)"/><stop offset="100%" stopColor="rgba(226,232,240,0.8)"/></radialGradient>
+        <filter id="bGl"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <circle cx={cx} cy={cy} r={r+3} fill="none" stroke="rgba(148,163,184,0.3)" strokeWidth="1"/>
+      <circle cx={cx} cy={cy} r={r} fill="url(#bBg)" stroke="rgba(148,163,184,0.4)" strokeWidth="0.5"/>
+      <ellipse cx={cx} cy={cy} rx={r*0.65} ry={r*0.18} fill="none" stroke="rgba(148,163,184,0.5)" strokeWidth="0.8"/>
+      <ellipse cx={cx} cy={cy} rx={r*0.18} ry={r} fill="none" stroke="rgba(148,163,184,0.4)" strokeWidth="0.5"/>
+      <text x={cx} y={cy-r-6} textAnchor="middle" fill="#0ea5e9" fontSize="9" fontWeight="700" fontFamily="system-ui">|0⟩</text>
+      <text x={cx} y={cy+r+13} textAnchor="middle" fill="#f87171" fontSize="9" fontWeight="700" fontFamily="system-ui">|1⟩</text>
+      <line x1={cx} y1={cy} x2={cx+px} y2={cy+py} stroke={col} strokeWidth="2" opacity="0.8" style={{transition:"all 0.6s cubic-bezier(0.34,1.56,0.64,1)"}}/>
+      <circle cx={cx+px} cy={cy+py} r="6" fill={col} filter="url(#bGl)" style={{transition:"all 0.6s cubic-bezier(0.34,1.56,0.64,1)"}}/>
+      <circle cx={cx} cy={cy} r="2" fill="rgba(6,182,212,0.4)"/>
+    </svg>
+  );
+};
+
+// ─── Level Select ──────────────────────────────────────────
+const LevelSelect=({cur,done,onSel,onClose})=>(
+  <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" style={{background:"rgba(248,250,252,0.85)",backdropFilter:"blur(20px)",animation:"fadeIn 0.25s ease-out"}} onClick={onClose}>
+    <div className="max-w-2xl w-full rounded-3xl p-5 md:p-7 max-h-[85vh] overflow-auto" style={{background:"rgba(255,255,255,0.95)",backdropFilter:"blur(30px)",border:"1px solid rgba(6,182,212,0.2)",boxShadow:"0 10px 40px rgba(0,0,0,0.05)"}} onClick={e=>e.stopPropagation()}>
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-3xl font-bold tracking-[0.2em] text-slate-800">SELECT LEVEL</h2>
+        <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-lg text-slate-800/60 hover:text-slate-800 transition-colors" style={{background:"rgba(6,182,212,0.1)"}}>✕</button>
+      </div>
+      {Object.keys(TIER_NAMES).map(tier=>{
+        const tl=LEVELS.filter(l=>l.tier===tier);
+        return(<div key={tier} className="mb-4">
+          <div className="text-[10px] tracking-[0.25em] mb-2 flex items-center gap-2 font-bold" style={{color:TIER_COLORS[tier]}}><div className="w-2 h-2 rounded-full" style={{background:TIER_COLORS[tier],boxShadow:`0 0 8px ${TIER_COLORS[tier]}`}}/>{TIER_NAMES[tier].toUpperCase()}</div>
+          <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+            {tl.map(l=>{const d=done.has(l.id),c=l.id===cur;return(
+              <button key={l.id} onClick={()=>onSel(l.id)} className="rounded-xl p-2.5 text-left transition-all duration-200 hover:scale-[1.04] active:scale-95" style={{background:c?"rgba(255,255,255,0.9)":d?"rgba(34,197,94,0.06)":"#f8fafc",border:`1.5px solid ${c?"rgba(6,182,212,0.5)":d?"rgba(34,197,94,0.3)":"rgba(226,232,240,1)"}`,boxShadow:c?"0 0 20px rgba(6,182,212,0.15)":"none"}}>
+                <div className="flex items-center justify-between"><span className="text-3xl md:text-4xl font-bold" style={{color:c?"#0ea5e9":d?"#4ade80":"#94a3b8"}}>{l.id}</span>{d&&<span className="text-green-400 text-lg">✓</span>}</div>
+                <div className="text-[9px] mt-0.5 truncate text-slate-500">{l.title}</div>
+              </button>
+            );})}
+          </div>
+        </div>);
+      })}
+    </div>
+  </div>
+);
+
+// ─── Main Game ─────────────────────────────────────────────
+function QuantumGame(){
+  const[lvlIdx,setLvlIdx]=useState(0);const lv=LEVELS[lvlIdx];
+  const[slots,setSlots]=useState(Array(lv.slots).fill(null));
+  const[selSlot,setSelSlot]=useState(null);
+  const[running,setRunning]=useState(false);
+  const[qPos,setQPos]=useState(-1);
+  const[qSt,setQSt]=useState(mk(lv.startState));
+  const[qVis,setQVis]=useState(vi(mk(lv.startState)));
+  const[bloch,setBloch]=useState(tb(mk(lv.startState)));
+  const[lnkVis,setLnkVis]=useState(null);
+  const[won,setWon]=useState(false);
+  const[failed,setFailed]=useState(false);
+  const[noiseHit,setNoiseHit]=useState(false);
+  const[pulse,setPulse]=useState(null);
+  const[snapPulse,setSnapPulse]=useState(null); // slot index for snap animation
+  const[timer,setTimer]=useState(0);
+  const[finalTime,setFinalTime]=useState(0);
+  const[done,setDone]=useState(new Set());
+  const[showLvls,setShowLvls]=useState(false);
+  const[showCode,setShowCode]=useState(false);
+  const[hovGate,setHovGate]=useState(null);
+  const[teachMode,setTeachMode]=useState(false);
+  const[showTeachModal,setShowTeachModal]=useState(false);
+  const[measuring,setMeasuring]=useState(false);
+  const[measuredVal,setMeasuredVal]=useState(null);
+  const[pendingResult,setPendingResult]=useState(null);
+  const timerRef=useRef(null);const simT=useRef([]);const slotRefs=useRef([]);
+  const trackRef=useRef(null);const startRef=useRef(null);const endRef=useRef(null);
+  const[orbX,setOrbX]=useState("4%");
+  
+  const getX = useCallback((pos) => {
+    const c = trackRef.current;
+    if(!c) return "4%";
+    const cr = c.getBoundingClientRect();
+    let el = null;
+    if(pos < 0) el = startRef.current;
+    else if(pos >= slots.length) el = endRef.current;
+    else el = slotRefs.current[pos];
+    
+    if(el) {
+      const r = el.getBoundingClientRect();
+      return `${r.left - cr.left + c.scrollLeft + r.width/2}px`;
+    }
+    return pos < 0 ? "4%" : "96%";
+  }, [slots.length]);
+
+  useEffect(() => {
+    const calc = () => setOrbX(getX(qPos));
+    calc();
+    const tm = setTimeout(calc, 50);
+    window.addEventListener('resize', calc);
+    return () => { clearTimeout(tm); window.removeEventListener('resize', calc); };
+  }, [qPos, getX]);
+
+  const{bs:bursts,fire}=useBurst();
+
+  const[stars]=useState(()=>Array.from({length:40},(_,i)=>({id:i,x:Math.random()*100,y:Math.random()*100,s:1+Math.random()*2.5,o:0.15+Math.random()*0.35,d:12+Math.random()*20,dl:Math.random()*10})));
+
+  const reset=useCallback((li)=>{
+    const l=LEVELS[li];simT.current.forEach(clearTimeout);simT.current=[];
+    if(timerRef.current)clearInterval(timerRef.current);
+    const init=mk(l.startState);
+    setSlots(Array(l.slots).fill(null));setSelSlot(null);setRunning(false);setQPos(-1);
+    setQSt(init);setQVis(vi(init));setBloch(tb(init));
+    setLnkVis(l.linked?vi(lk(init,l.linkType)):null);
+    setWon(false);setFailed(false);setNoiseHit(false);setPulse(null);setSnapPulse(null);setTimer(0);setFinalTime(0);setTeachMode(false);setShowTeachModal(false);setMeasuring(false);setMeasuredVal(null);setPendingResult(null);
+  },[]);
+
+  useEffect(()=>{reset(lvlIdx);},[lvlIdx,reset]);
+
+  const place=useCallback((g)=>{
+    if(running||won||measuring||selSlot===null)return;
+    setTeachMode(false);
+    setSlots(p=>{const n=[...p];n[selSlot]=g;return n;});
+    setSnapPulse(selSlot);setTimeout(()=>setSnapPulse(null),400);
+    setSelSlot(null);
+  },[selSlot,running,won]);
+
+  const slotClick=(i)=>{
+    if(running||won||measuring)return;
+    setTeachMode(false);
+    if(slots[i]){setSlots(p=>{const n=[...p];n[i]=null;return n;});setSelSlot(null);}
+    else setSelSlot(i===selSlot?null:i);
+  };
+
+  const drop=(i,e)=>{
+    e.preventDefault();if(running||won||measuring)return;
+    setTeachMode(false);
+    const g=e.dataTransfer.getData("gate");
+    if(g){setSlots(p=>{const n=[...p];n[i]=g;return n;});setSnapPulse(i);setTimeout(()=>setSnapPulse(null),400);setSelSlot(null);}
+  };
+
+  const bc=(v)=>v==="zero"?"rgba(6,182,212,0.9)":v==="one"?"rgba(239,68,68,0.9)":"rgba(139,92,246,0.9)";
+
+  const run=()=>{
+    if(running||won)return;setRunning(true);setFailed(false);setNoiseHit(false);
+    let st=mk(lv.startState);setQSt(st);setQVis(vi(st));setBloch(tb(st));setQPos(-1);setPulse(null);
+    setMeasuredVal(null);setPendingResult(null);setMeasuring(false);
+    if(lv.linked)setLnkVis(vi(lk(st,lv.linkType)));
+    const t0=Date.now();setTimer(0);if(timerRef.current)clearInterval(timerRef.current);
+    timerRef.current=setInterval(()=>setTimer(Date.now()-t0),100);
+    let step=0;
+    const go=()=>{
+      if(step<=slots.length){
+        setQPos(step-1);
+        if(step>0&&slots[step-1]){
+          st=ag(st,slots[step-1]);setPulse(step-1);
+          const el=slotRefs.current[step-1];
+          if(el){const r=el.getBoundingClientRect();const c=el.closest(".gTrack");
+            if(c){const cr=c.getBoundingClientRect();fire(r.left-cr.left+r.width/2,r.top-cr.top+r.height/2,bc(vi(st)));}}
+          simT.current.push(setTimeout(()=>{setQSt({...st});setQVis(vi(st));setBloch(tb(st));if(lv.linked)setLnkVis(vi(lk(st,lv.linkType)));setTimeout(()=>setPulse(null),180);},220));
+        }else if(step>0&&!slots[step-1]&&lv.hasNoise&&step-1===lv.noiseSlot){
+          st=nz(st);setNoiseHit(true);
+          const el=slotRefs.current[step-1];if(el){const r=el.getBoundingClientRect();const c=el.closest(".gTrack");if(c){const cr=c.getBoundingClientRect();fire(r.left-cr.left+r.width/2,r.top-cr.top+r.height/2,"rgba(234,88,12,0.9)",20);}}
+          simT.current.push(setTimeout(()=>{setQSt({...st});setQVis(vi(st));setBloch(tb(st));if(lv.linked)setLnkVis(vi(lk(st,lv.linkType)));},220));
+        }
+        step++;simT.current.push(setTimeout(go,650));
+      }else{
+        setQPos(slots.length);
+        simT.current.push(setTimeout(()=>{
+          const el=Date.now()-t0;setFinalTime(el);if(timerRef.current)clearInterval(timerRef.current);setTimer(el);
+          const gc=slots.filter(Boolean).length;
+          setPendingResult({ st, gc });
+          setMeasuring(true);
+        },450));
+      }
+    };
+    simT.current.push(setTimeout(go,300));
+  };
+
+  const retry=()=>{
+    simT.current.forEach(clearTimeout);simT.current=[];if(timerRef.current)clearInterval(timerRef.current);
+    const init=mk(lv.startState);setRunning(false);setQPos(-1);setQSt(init);setQVis(vi(init));setBloch(tb(init));
+    if(lv.linked)setLnkVis(vi(lk(init,lv.linkType)));
+    setFailed(false);setNoiseHit(false);setPulse(null);setTimer(0);
+    setMeasuredVal(null);setPendingResult(null);setMeasuring(false);
+  };
+
+
+  const handleMeasure=()=>{
+    if(!pendingResult || measuredVal!==null) return;
+    const st = pendingResult.st;
+    const p0 = st.t==="d"? (st.v===0?100:0) : Math.round(st.a*st.a*100);
+    const outcome = (Math.random()*100) < p0 ? 0 : 1;
+    setMeasuredVal(outcome);
+    setQVis(outcome===0?"zero":"one");
+    setTimeout(()=>{
+      setMeasuring(false);
+      setRunning(false);
+      if(mt(pendingResult.st,lv.target)&&(!lv.minGates||pendingResult.gc>=lv.minGates)){
+        setWon(true);setDone(p=>new Set([...p,lvlIdx]));
+      }else{
+        setFailed(true);
+      }
+    }, 2000);
+  };
+
+  const fmt=(ms)=>`${Math.floor(ms/1000)}.${Math.floor((ms%1000)/100)}s`;
+  const hasG=slots.some(Boolean);
+  const startV=vi(mk(lv.startState));
+  const targetV=lv.target.startsWith("super")?"super":lv.target;
+  const tierCol=TIER_COLORS[lv.tier];
+
+  return(
+    <div className="min-h-screen text-slate-800 overflow-hidden relative flex flex-col" style={{fontFamily:"'Inter',system-ui,sans-serif",background:"#e2e8f0"}}>
+
+      {/* Subtle grid — very thin, low opacity */}
+      <div className="absolute inset-0 pointer-events-none" style={{backgroundImage:"linear-gradient(rgba(14,165,233,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(14,165,233,0.06) 1px,transparent 1px)",backgroundSize:"50px 50px"}}/>
+
+      {/* Subtle ambient glow */}
+      <div className="absolute pointer-events-none" style={{width:"40%",height:"40%",top:"30%",left:"30%",background:"radial-gradient(circle,rgba(6,182,212,0.06),transparent 70%)",filter:"blur(60px)"}}/>
+
+      {/* Stars */}
+      <div className="absolute inset-0 pointer-events-none">
+        {stars.map(s=><div key={s.id} className="absolute rounded-full" style={{width:s.s,height:s.s,left:`${s.x}%`,top:`${s.y}%`,opacity:s.o*0.7,background:"rgba(148,163,184,0.3)",animation:`starD ${s.d}s ease-in-out ${s.dl}s infinite alternate`}}/>)}
+      </div>
+
+      {/* ═══ Header ═══ */}
+      <div className="relative z-20 flex flex-col sm:flex-row items-center justify-between px-4 md:px-8 py-3 gap-3" style={{background:"rgba(255,255,255,0.95)",backdropFilter:"blur(16px)",borderBottom:"1px solid rgba(226,232,240,1)"}}>
+        <h1 className="text-4xl md:text-5xl font-extrabold tracking-[0.25em]" style={{color:"#1e293b"}}>
+          QUBIT <span style={{color:"#0ea5e9"}}>PATH</span>
+        </h1>
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Timer panel */}
+          <div className="px-3 py-1.5 rounded-xl text-[11px] font-bold tracking-wider tabular-nums text-slate-700" style={{background:"#f1f5f9",border:"1px solid rgba(203,213,225,1)"}}>{fmt(timer)}</div>
+          {/* Level badge */}
+          <div className="px-3 py-1.5 rounded-xl text-[11px] font-bold tracking-wider" style={{background:"#f1f5f9",border:`1px solid ${tierCol}40`,color:tierCol}}>{lv.id}/20</div>
+          <button onClick={()=>setShowLvls(true)} className="px-3.5 py-1.5 rounded-xl text-[11px] tracking-wider font-bold text-cyan-600 transition-all hover:scale-105 active:scale-95" style={{background:"#f1f5f9",border:"1px solid rgba(203,213,225,1)"}}>LEVELS</button>
+        </div>
+      </div>
+
+      {/* ═══ Briefing Panel ═══ */}
+      <div className="relative z-10 mx-3 md:mx-8 mt-3 px-4 md:px-5 py-3 rounded-2xl" style={{background:"#ffffff",backdropFilter:"blur(12px)",border:"1px solid #e2e8f0",boxShadow:"0 1px 3px rgba(0,0,0,0.02)"}}>
+        <div className="flex items-start gap-3">
+          <span className="text-2xl mt-0.5">📜</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{color:tierCol}}>{lv.title.toUpperCase()}</span>
+              <span className="text-slate-300">·</span>
+              <span className="text-[11px] font-semibold text-amber-600">{lv.hint}</span>
+            </div>
+            <p className="text-[13px] leading-relaxed text-slate-800 font-medium">{lv.briefing}</p>
+            {lv.minGates>0&&<p className="text-[11px] mt-1 font-bold text-pink-600">⚡ Minimum {lv.minGates} gates required</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ Game Area ═══ */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-3 md:px-8 py-4 md:py-6 overflow-auto">
+
+        {/* Target row */}
+        <div className="mb-5 md:mb-7 flex items-center gap-3 md:gap-5">
+          <Orb v={startV} size={28} anim={false}/>
+          <span className="text-3xl font-bold text-slate-400">→</span>
+          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl" style={{background:"#ffffff",border:"1px solid #e2e8f0",boxShadow:"0 1px 3px rgba(0,0,0,0.02)"}}>
+            <span className="text-2xl font-extrabold tracking-wider text-cyan-600">
+              {lv.target==="zero"?"|0⟩":lv.target==="one"?"|1⟩":lv.target==="superposition"?"|ψ⟩":lv.target==="super_plus"?"|+⟩":"|−⟩"}
+            </span>
+            <Orb v={targetV} size={28}/>
+          </div>
+        </div>
+
+        {/* ═══ Track ═══ */}
+        <div ref={trackRef} className="relative w-full max-w-2xl gTrack overflow-x-auto pt-8 pb-6 scrollbar-hide">
+          {/* Laser beam */}
+          <div className="absolute top-1/2 left-[4%] right-[4%] -translate-y-1/2" style={{height:2,background:"linear-gradient(90deg,transparent,rgba(203,213,225,1) 10%,rgba(203,213,225,1) 90%,transparent)",borderRadius:1}}/>
+
+          {/* Bursts */}
+          <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
+            {bursts.map(b=>(
+              <div key={b.id} className="absolute" style={{left:b.x,top:b.y}}>
+                {b.pts.map(p=><div key={p.i} className="absolute rounded-full" style={{width:p.sz,height:p.sz,background:b.c,boxShadow:`0 0 10px ${b.c}`,animation:`pB ${p.dur}ms cubic-bezier(0.2,0,0.5,1) forwards`,"--px":`${Math.cos(p.a*Math.PI/180)*p.d}px`,"--py":`${Math.sin(p.a*Math.PI/180)*p.d}px`}}/>)}
+                <div className="absolute -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full" style={{background:`radial-gradient(circle,${b.c},transparent 70%)`,animation:"fl 400ms ease-out forwards"}}/>
+              </div>
+            ))}
+          </div>
+
+          <div className="relative z-10 flex items-center justify-between py-2">
+            {/* Start node */}
+            <div className="w-8 md:w-12 flex-shrink-0 flex justify-center">
+              <div ref={startRef} className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center" style={{background:"#ffffff",border:"1.5px solid rgba(226,232,240,1)"}}>
+                <Orb v={startV} size={18} anim={false}/>
+              </div>
+            </div>
+
+            {/* Slots */}
+            <div className="flex-1 flex items-center justify-around mx-1 md:mx-2 gap-0.5">
+              {slots.map((g,i)=>{
+                const isN=lv.hasNoise&&i===lv.noiseSlot;
+                const isP=pulse===i;const isSnap=snapPulse===i;
+                const isSel=selSlot===i;const filled=!!g;
+                const gC=g==="X"?"#ef4444":g==="H"?"#a78bfa":"#0ea5e9";
+                
+                // Pure Tailwind responsive classes replacing JS innerWidth
+                const szMap = lv.slots > 7 ? 'w-8 h-8 sm:w-9 sm:h-9 md:w-[46px] md:h-[46px]' : lv.slots > 5 ? 'w-9 h-9 sm:w-10 sm:h-10 md:w-[50px] md:h-[50px]' : 'w-11 h-11 md:w-[56px] md:h-[56px]';
+
+                return(
+                  <div key={i} className="flex flex-shrink-0 flex-col items-center gap-1 relative">
+                    {isN&&<div className="absolute -top-6 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-lg text-[9px] md:text-xs tracking-widest font-extrabold whitespace-nowrap z-50" style={{background:noiseHit?"#ea580c":"#ffffff",border:"2px solid #ea580c",color:noiseHit?"#ffffff":"#ea580c",boxShadow:"0 4px 6px rgba(234,88,12,0.2)"}}>⚡ NOISE</div>}
+                    <button ref={el=>slotRefs.current[i]=el} onClick={()=>slotClick(i)} onDrop={e=>drop(i,e)} onDragOver={e=>e.preventDefault()}
+                      className={`transition-all duration-300 relative ${szMap}`} style={{
+                        borderRadius:14,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        cursor:running?"default":"pointer",
+                        background:filled?teachMode?"rgba(234,88,12,0.1)":`rgba(${g==="X"?"239,68,68":g==="H"?"139,92,246":"34,211,238"},0.06)`
+                          :isSel?"rgba(34,211,238,0.06)"
+                          :isN?"rgba(234,88,12,0.1)"
+                          :"#ffffff",
+                        border:`2px ${isN&&!filled?"dashed":"solid"} ${filled?teachMode?"rgba(234,88,12,0.8)":`${gC}90`:isSel?"rgba(34,211,238,0.5)":isN?"#ea580c":"rgba(226,232,240,1)"}`,
+                        boxShadow:filled?teachMode?"0 0 20px rgba(234,88,12,0.3), inset 0 0 10px rgba(234,88,12,0.15)":`0 0 12px rgba(${g==="X"?"239,68,68":g==="H"?"139,92,246":"34,211,238"},0.15)`
+                          :isSel?"0 0 12px rgba(226,232,240,1)"
+                          :"none",
+                        transform:isP?"scale(1.12)":isSnap?"scale(1.08)":qPos===i?"scale(1.04)":"scale(1)",
+                        outline:qPos===i?"2px solid rgba(6,182,212,0.3)":"none",outlineOffset:3,
+                      }}>
+                      {/* Snap pulse ring */}
+                      {isSnap&&<div className="absolute inset-[-4px] rounded-2xl pointer-events-none" style={{border:teachMode?"2px solid rgba(234,88,12,0.8)":"2px solid rgba(6,182,212,0.6)",animation:"snapRing 0.4s ease-out forwards"}}/>}
+                      {filled?<>
+                        <span className={`font-extrabold transition-all duration-300 ${lv.slots>7?'text-sm md:text-base':lv.slots>5?'text-base md:text-lg':'text-lg md:text-xl'}`} style={{color:teachMode?"#fcd34d":gC,textShadow:teachMode?"0 0 20px rgba(234,88,12,0.8)":`0 0 15px ${gC}`}}>{g}</span>
+                        {!running&&<div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-slate-400 hover:text-slate-800 transition-colors" style={{background:"#ffffff",border:"1px solid rgba(203,213,225,1)"}}>✕</div>}
+                      </>:isN&&!isSel?<span className="text-sm md:text-lg" style={{color:"#ea580c"}}>⚡</span>:
+                      <div className="rounded-full transition-all duration-200" style={{width:isSel?10:5,height:isSel?10:5,background:isSel?"rgba(6,182,212,0.5)":"rgba(6,182,212,0.15)",boxShadow:isSel?"0 0 10px rgba(6,182,212,0.4)":"none"}}/>}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* End node */}
+            <div className="w-8 md:w-12 flex-shrink-0 flex justify-center">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all duration-500" style={{background:won?"rgba(34,197,94,0.08)":"#ffffff",border:`1.5px solid ${won?"rgba(34,197,94,0.5)":"rgba(226,232,240,1)"}`,boxShadow:won?"0 0 20px rgba(34,197,94,0.2)":"none"}}>
+                <span className="text-3xl md:text-4xl">🎯</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Moving qubit with trail */}
+          {(running||won||failed)&&<div className="absolute z-20 -translate-x-1/2 -translate-y-1/2 pointer-events-none" style={{top:"50%",left:orbX,transition:"left 0.55s cubic-bezier(0.34,1.56,0.64,1)"}}><Orb v={qVis} className="w-8 h-8 md:w-[42px] md:h-[42px]" trail={running}/></div>}
+        </div>
+
+        {/* Linked Qubit */}
+        {lv.linked&&lnkVis&&(
+          <div className="mt-4 flex items-center gap-3 px-4 py-2.5 rounded-xl" style={{background:"#ffffff",border:"1px solid rgba(236,72,153,0.15)"}}>
+            <span className="text-[10px] tracking-[0.15em] font-bold text-pink-600">{lv.linkType==="mirror"?"MIRROR":"ANTI"}</span>
+            <Orb v={lnkVis} size={32}/>
+            <span className="text-[10px] font-semibold text-slate-500">Linked Qubit</span>
+          </div>
+        )}
+
+        {noiseHit&&!won&&<div className="mt-4 px-4 py-3 rounded-2xl text-xs md:text-sm tracking-wider font-extrabold" style={{background:"#ea580c",border:"2px solid #c2410c",color:"#ffffff",boxShadow:"0 4px 15px rgba(234,88,12,0.3)",animation:"fadeUp 0.3s ease-out"}}>⚡ Quantum noise corrupted the state — shield the slot!</div>}
+
+        {/* Action Buttons */}
+        <div className="mt-3 md:mt-7 flex gap-1.5 sm:gap-3 items-center flex-nowrap justify-center w-full px-1">
+          {!won&&!failed&&<>
+            <button onClick={run} disabled={!hasG||running} className="transition-all duration-300 active:scale-95 hover:scale-[1.03] flex-1 md:flex-none px-2 py-2.5 md:px-7 md:py-3 rounded-xl md:rounded-2xl text-[9px] sm:text-xs md:text-base font-extrabold tracking-widest whitespace-nowrap" style={{background:hasG&&!running?"rgba(34,197,94,0.08)":"#ffffff",border:`2px solid ${hasG&&!running?"rgba(34,197,94,0.5)":"rgba(226,232,240,1)"}`,color:hasG&&!running?"#4ade80":"#94a3b8",cursor:hasG&&!running?"pointer":"not-allowed"}}>▶ RUN</button>
+            <button onClick={()=>{setSlots(lv.ans);setTeachMode(true);setShowTeachModal(true);}} disabled={running} className="transition-all duration-300 active:scale-95 hover:scale-[1.03] flex-1 md:flex-none px-2 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl text-[9px] sm:text-xs md:text-base font-extrabold tracking-widest whitespace-nowrap" style={{background:"rgba(249,115,22,0.1)",border:"2px solid rgba(249,115,22,0.4)",color:"#ea580c",boxShadow:"0 0 15px rgba(249,115,22,0.15)"}}>💡 TEACH ME</button>
+            <button onClick={()=>reset(lvlIdx)} disabled={running} className="transition-all duration-300 active:scale-95 hover:scale-[1.03] flex-1 md:flex-none px-2 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl text-[9px] sm:text-xs md:text-base font-extrabold tracking-widest whitespace-nowrap" style={{background:"#ffffff",border:"2px solid #cbd5e1",boxShadow:"0 2px 4px rgba(0,0,0,0.03)",color:"#1e293b"}}>⟲ RESET</button>
+          </>}
+          {failed&&<>
+            <div className="px-2 py-2.5 md:px-4 md:py-3 rounded-xl md:rounded-2xl text-[8px] sm:text-[10px] md:text-xs tracking-wider font-bold whitespace-nowrap" style={{background:"#ffffff",border:"1px solid rgba(239,68,68,0.3)",color:"#f87171"}}>
+              {lv.minGates&&slots.filter(Boolean).length<lv.minGates?`Need ${lv.minGates}+`:"Mismatch"}
+            </div>
+            <button onClick={retry} className="transition-all duration-300 active:scale-95 flex-1 md:flex-none px-2 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl text-[9px] sm:text-xs md:text-base font-extrabold tracking-widest whitespace-nowrap" style={{background:"#ffffff",border:"2px solid rgba(234,88,12,0.35)",color:"#ea580c"}}>↻ RETRY</button>
+            <button onClick={()=>reset(lvlIdx)} className="transition-all duration-300 active:scale-95 flex-1 md:flex-none px-2 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl text-[9px] sm:text-xs md:text-base font-extrabold tracking-widest whitespace-nowrap" style={{background:"#ffffff",border:"2px solid #cbd5e1",boxShadow:"0 2px 4px rgba(0,0,0,0.03)",color:"#1e293b"}}>⟲ CLEAR</button>
+          </>}
+        </div>
+
+
+        {/* Measurement Panel */}
+        {measuring&&<div className="mt-6 w-full max-w-lg p-5 rounded-2xl flex flex-col items-center gap-5 relative z-30" style={{background:"rgba(255,255,255,0.95)",border:"2px solid rgba(6,182,212,0.4)",boxShadow:"0 10px 30px rgba(0,0,0,0.08)",backdropFilter:"blur(12px)",animation:"wE 0.4s ease-out forwards"}}>
+          <div className="text-[12px] tracking-widest font-extrabold text-cyan-600">THEORETICAL PROBABILITY</div>
+          {(()=>{
+            const st = pendingResult?.st;
+            if(!st) return null;
+            const p0 = st.t==="d"? (st.v===0?100:0) : Math.round(st.a*st.a*100);
+            const p1 = 100 - p0;
+            return(
+              <div className="w-full flex flex-col gap-3 px-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 text-right font-bold text-cyan-600">|0⟩</div>
+                  <div className="flex-1 h-3 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.05)"}}>
+                    <div className="h-full rounded-full transition-all duration-1000" style={{width:`${p0}%`,background:"#0ea5e9",boxShadow:"0 0 10px #0ea5e9"}}/>
+                  </div>
+                  <div className="w-11 text-base font-bold">{p0}%</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 text-right font-bold text-red-600">|1⟩</div>
+                  <div className="flex-1 h-3 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.05)"}}>
+                    <div className="h-full rounded-full transition-all duration-1000" style={{width:`${p1}%`,background:"#ef4444",boxShadow:"0 0 10px #ef4444"}}/>
+                  </div>
+                  <div className="w-11 text-base font-bold">{p1}%</div>
+                </div>
+              </div>
+            );
+          })()}
+          <div className="px-5 py-2.5 bg-indigo-500/10 border border-indigo-400/30 rounded-xl text-[12px] font-semibold text-indigo-800 text-center">In quantum, we can't see the state until we measure it—this collapses the wavefunction!</div>
+          <div className="mt-1">
+            {measuredVal===null ? <button onClick={handleMeasure} className="transition-all duration-300 active:scale-95 hover:scale-[1.03]" style={{padding:"10px 24px",borderRadius:12,fontSize:16,fontWeight:800,letterSpacing:"0.15em",background:"#0ea5e9",color:"#083344",boxShadow:"0 0 20px rgba(34,211,238,0.4)"}}>🔭 MEASURE</button>
+            : <div className="text-[13px] font-extrabold tracking-widest px-6 py-2 rounded-xl" style={{color:measuredVal===0?"#0ea5e9":"#ef4444", border:`1px solid ${measuredVal===0?"#0ea5e9":"#ef4444"}40`, animation:"wGl 1s infinite alternate"}}>WAVEFUNCTION COLLAPSED TO |{measuredVal}⟩</div>}
+          </div>
+        </div>}
+
+        {/* ═══ Bottom Controls ═══ */}
+        <div className="mt-5 md:mt-7 flex flex-row items-center justify-center gap-2 md:gap-4 w-full max-w-2xl px-1 sm:px-2 mb-10">
+
+          {/* Toolbox */}
+          {!won&&(
+            <div className="flex-1 px-1 sm:px-3 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl" style={{background:"#ffffff",backdropFilter:"blur(12px)",border:"1px solid #e2e8f0",boxShadow:"0 1px 3px rgba(0,0,0,0.02)"}}>
+              <div className="text-[6.5px] sm:text-[8px] md:text-[9px] tracking-[0.2em] md:tracking-[0.25em] mb-2 md:mb-3 text-center font-bold" style={{color:selSlot!==null?"#0ea5e9":"rgba(255,255,255,0.4)"}}>
+                {selSlot!==null?`PLACE INTO SLOT ${selSlot+1}`:"SELECT A GATE"}
+              </div>
+              <div className="flex gap-2 sm:gap-3 md:gap-5 justify-center items-start">
+                {lv.gates.map(g=>{
+                  const isX=g==="X",isH=g==="H";
+                  const gCol=isX?"#ef4444":isH?"#a78bfa":"#0ea5e9";
+                  const gColA=isX?"rgba(239,68,68,":isH?"rgba(167,139,250,":"rgba(34,211,238,";
+                  return(
+                    <div key={g} className="flex flex-col items-center gap-1 md:gap-1.5 relative">
+                      <button onClick={()=>place(g)} draggable={!running} onDragStart={e=>e.dataTransfer.setData("gate",g)}
+                        onMouseEnter={()=>setHovGate(g)} onMouseLeave={()=>setHovGate(null)} disabled={running}
+                        className={`relative rounded-xl flex flex-col items-center justify-center transition-all duration-300 select-none ${running?"opacity-40 cursor-not-allowed":"cursor-grab active:cursor-grabbing hover:scale-110 hover:-translate-y-1.5 active:scale-95"} ${lv.gates.length>2?'w-11 h-12 sm:w-12 sm:h-14 md:w-[58px] md:h-[70px]':'w-[50px] h-[54px] sm:w-14 sm:h-16 md:w-[66px] md:h-[78px]'}`}
+                        style={{
+                          background:"#ffffff",
+                          border:`2px solid ${gColA}0.4)`,
+                          boxShadow:`0 6px 15px ${gColA}0.15)`,
+                          animation:"gatePG 3s ease-in-out infinite","--gc":`${gColA}0.15)`,
+                        }}>
+                        <div className="absolute top-0 left-2 right-2 h-px rounded-full" style={{background:`${gColA}0.5)`}}/>
+                        <span className="text-3xl md:text-5xl font-extrabold" style={{color:gCol,textShadow:`0 0 20px ${gColA}0.6)`}}>{g}</span>
+                        <span className="hidden sm:block text-[8px] md:text-[10px] tracking-widest font-bold mt-0.5" style={{color:gCol,opacity:0.8}}>{isX?"FLIP":isH?"SPLIT":"PHASE"}</span>
+                      </button>
+                      <span className="text-[9px] sm:text-[11px] md:text-sm tracking-widest font-bold text-slate-500 mt-1">{isX?"Pauli-X":isH?"Hadamard":"Phase-Z"}</span>
+                      {/* Tooltip */}
+                      <div className="absolute -bottom-10 md:-bottom-14 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1.5 md:py-2.5 rounded-xl text-center transition-all duration-200 pointer-events-none z-[100] text-[10px] sm:text-xs md:text-sm font-extrabold shadow-xl" style={{background:"#ffffff",border:"1px solid rgba(203,213,225,1)",opacity:hovGate===g?1:0,transform:`translateX(-50%) translateY(${hovGate===g?0:-4}px)`,color:"#1e293b"}}>
+                        {isX?"Flips |0⟩ ↔ |1⟩":isH?"Creates superposition":"Flips phase of |1⟩"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Bloch Sphere Control Panel */}
+          <div className="px-2 md:px-4 py-3 rounded-xl md:rounded-2xl flex flex-col items-center justify-center flex-shrink-0" style={{background:"#ffffff",backdropFilter:"blur(16px)",border:"1px solid rgba(139,92,246,0.3)",boxShadow:"0 0 20px rgba(139,92,246,0.1)"}}>
+            <Bloch th={bloch.th} ph={bloch.ph} v={qVis}/>
+            <span className="text-[6px] md:text-[8px] tracking-[0.2em] md:tracking-[0.3em] font-bold mt-1 text-center" style={{color:"#a78bfa",textShadow:"0 0 8px rgba(167,139,250,0.4)"}}>BLOCH SPHERE</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Code button */}
+      <button onClick={()=>setShowCode(!showCode)} className="fixed bottom-3 right-3 z-40 transition-all duration-300 active:scale-95 hover:scale-105" style={{padding:"6px 14px",borderRadius:12,fontSize:13,letterSpacing:"0.15em",fontWeight:700,background:"rgba(255,255,255,0.95)",backdropFilter:"blur(12px)",border:"1px solid rgba(6,182,212,0.25)",color:"#0ea5e9"}}>{"</>"}</button>
+
+      {/* Code viewer */}
+      {showCode&&<div className="fixed inset-0 z-[90] flex items-center justify-center p-4" style={{background:"rgba(248,250,252,0.85)",backdropFilter:"blur(16px)"}} onClick={()=>setShowCode(false)}>
+        <div className="rounded-2xl max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col" style={{background:"rgba(255,255,255,0.95)",backdropFilter:"blur(30px)",border:"1px solid rgba(6,182,212,0.2)"}} onClick={e=>e.stopPropagation()}>
+          <div className="flex items-center justify-between px-5 py-3" style={{borderBottom:"1px solid rgba(6,182,212,0.1)"}}>
+            <div className="flex items-center gap-2"><div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-400/80"/><div className="w-3 h-3 rounded-full bg-yellow-400/80"/><div className="w-3 h-3 rounded-full bg-green-400/80"/></div><span className="text-sm ml-2 text-slate-400 font-semibold">quantum-engine.js</span></div>
+            <button onClick={()=>setShowCode(false)} className="w-6 h-6 rounded-full flex items-center justify-center text-lg text-slate-400 hover:text-slate-800" style={{background:"rgba(6,182,212,0.1)"}}>✕</button>
+          </div>
+          <pre className="p-4 text-[10px] leading-relaxed overflow-auto font-mono text-cyan-800">
+{`// Quantum gates as linear algebra
+const applyGate = (state, gate) => {
+  if (gate === "X") { // Pauli-X: bit flip
+    if (definite) return flip(value);
+    return { alpha: beta, beta: alpha };
+  }
+  if (gate === "H") { // Hadamard
+    const s = 1/√2;
+    // |0⟩ → (|0⟩+|1⟩)/√2
+    // |1⟩ → (|0⟩-|1⟩)/√2
+    return { alpha: s*(a+b), beta: s*(a-b) };
+  }
+  if (gate === "Z") { // Phase flip
+    // Z|0⟩ = |0⟩, Z|1⟩ = -|1⟩
+    return { alpha, beta: -beta };
+  }
+};
+// Key identities:
+// H·H = I   (self-inverse)
+// X·X = I   (double flip)
+// H·Z·H = X (phase ≡ flip in H basis)`}</pre>
+        </div>
+      </div>}
+
+      
+      {/* Teach Modal */}
+      {showTeachModal&&<div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{background:"rgba(248,250,252,0.9)",backdropFilter:"blur(12px)",animation:"fadeIn 0.3s ease-out"}} onClick={()=>setShowTeachModal(false)}>
+        <div className="max-w-md w-full rounded-3xl p-6 md:p-8" style={{background:"#ffffff",border:"1px solid rgba(234,88,12,0.4)",boxShadow:"0 0 60px rgba(234,88,12,0.15),0 20px 40px rgba(0,0,0,0.5)"}} onClick={e=>e.stopPropagation()}>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-4xl" style={{filter:"drop-shadow(0 0 10px rgba(234,88,12,0.6))"}}>💡</span>
+            <h2 className="text-2xl font-extrabold tracking-widest text-slate-800" style={{textShadow:"0 2px 5px rgba(0,0,0,0.05)"}}>THE SOLUTION</h2>
+          </div>
+          <p className="text-[14px] leading-relaxed text-slate-800 font-medium mb-8" style={{textShadow:"0 0 2px rgba(226,232,240,1)"}}>{lv.solution}</p>
+          <button onClick={()=>setShowTeachModal(false)} className="w-full transition-all duration-300 hover:scale-[1.02] active:scale-95 py-3 rounded-xl font-bold tracking-widest" style={{background:"rgba(234,88,12,0.15)",border:"2px solid rgba(234,88,12,0.6)",color:"#ea580c",boxShadow:"0 0 20px rgba(234,88,12,0.2)"}}>GOT IT!</button>
+        </div>
+      </div>}
+      {/* Level Select */}
+      {showLvls&&<LevelSelect cur={lv.id} done={done} onSel={i=>{setLvlIdx(i-1);setShowLvls(false);}} onClose={()=>setShowLvls(false)}/>}
+
+      {/* ═══ Victory ═══ */}
+      {won&&(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(248,250,252,0.85)",backdropFilter:"blur(20px)",animation:"fadeIn 0.4s ease-out"}}>
+          {/* Confetti particles */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {Array.from({length:50},(_,i)=>{
+              const colors=["#0ea5e9","#a78bfa","#4ade80","#ea580c","#ec4899","#ffffff"];
+              return<div key={i} className="absolute" style={{width:3+Math.random()*5,height:3+Math.random()*5,borderRadius:Math.random()>0.5?"50%":"2px",left:`${Math.random()*100}%`,top:`${Math.random()*100}%`,background:colors[i%colors.length],boxShadow:`0 2px 5px rgba(0,0,0,0.1)`,animation:`confetti ${2+Math.random()*4}s ease-in-out ${Math.random()*1.5}s infinite alternate`,opacity:0.8}}/>;
+            })}
+          </div>
+          <div className="relative flex flex-col items-center gap-4 p-8 md:p-10 rounded-3xl max-w-md w-full" style={{background:"rgba(255,255,255,0.95)",backdropFilter:"blur(30px)",border:"1px solid rgba(34,197,94,0.25)",boxShadow:"0 15px 50px rgba(0,0,0,0.1)",animation:"wE 0.6s cubic-bezier(0.34,1.56,0.64,1),wBr 3s ease-in-out 0.6s infinite"}}>
+            <div className="text-5xl" style={{animation:"wSp 0.8s cubic-bezier(0.34,1.56,0.64,1)"}}>⚛️</div>
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-[0.2em] text-slate-800" style={{textShadow:"0 0 30px rgba(34,197,94,0.5),0 0 60px rgba(6,182,212,0.3)",animation:"wGl 2s ease-in-out infinite alternate"}}>CLEARED</h2>
+            <div className="flex items-center gap-6">
+              {[["TIME",fmt(finalTime),"#0ea5e9"],["LEVEL",`${lv.id}/20`,"#a78bfa"],["GATES",`${slots.filter(Boolean).length}`,"#4ade80"]].map(([l,val,c])=>(
+                <div key={l} className="flex flex-col items-center"><span className="text-[9px] tracking-[0.25em] font-bold text-slate-500">{l}</span><span className="text-3xl font-extrabold tabular-nums" style={{color:c,textShadow:`0 0 15px ${c}`}}>{val}</span></div>
+              ))}
+            </div>
+            {/* Why It Works */}
+            <div className="w-full px-4 py-3 rounded-xl" style={{background:"#f8fafc",border:"1px solid rgba(234,88,12,0.15)"}}>
+              <div className="text-[10px] tracking-[0.25em] mb-1.5 font-bold" style={{color:"#ea580c",textShadow:"0 0 8px rgba(234,88,12,0.3)"}}>💡 WHY IT WORKS</div>
+              <p className="text-[13px] leading-relaxed text-slate-800 font-medium">{lv.solution}</p>
+            </div>
+            <div className="flex gap-3 mt-1">
+              <button onClick={()=>reset(lvlIdx)} className="transition-all active:scale-95 hover:scale-105" style={{padding:"10px 20px",borderRadius:16,fontSize:15,fontWeight:800,letterSpacing:"0.12em",background:"#ffffff",border:"2px solid rgba(226,232,240,1)",color:"#1e293b",backdropFilter:"blur(8px)"}}>↻ REPLAY</button>
+              {lvlIdx<LEVELS.length-1?<button onClick={()=>setLvlIdx(lvlIdx+1)} className="transition-all active:scale-95 hover:scale-105" style={{padding:"10px 26px",borderRadius:16,fontSize:15,fontWeight:800,letterSpacing:"0.12em",background:"rgba(255,255,255,0.9)",border:"2px solid rgba(6,182,212,0.35)",color:"#0ea5e9",boxShadow:"0 0 25px rgba(6,182,212,0.15)",backdropFilter:"blur(8px)",textShadow:"0 0 12px rgba(6,182,212,0.4)"}}>NEXT →</button>
+              :<div style={{padding:"10px 20px",borderRadius:16,fontSize:15,fontWeight:800,letterSpacing:"0.12em",background:"rgba(234,88,12,0.08)",border:"2px solid rgba(234,88,12,0.25)",color:"#ea580c",display:"flex",alignItems:"center",gap:6,textShadow:"0 0 10px rgba(234,88,12,0.3)"}}>🏆 QUANTUM MASTER</div>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes starD{0%{transform:translate(0,0)}100%{transform:translate(${Math.random()>0.5?"":"-"}${6+Math.random()*8}px,${Math.random()>0.5?"":"-"}${6+Math.random()*8}px)}}
+        @keyframes orbB{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+        @keyframes orbV{0%{transform:translate(0,0) scale(1)}20%{transform:translate(-2px,1px) scale(1.03)}40%{transform:translate(2px,-1px) scale(0.97)}60%{transform:translate(-1px,-2px) scale(1.02)}80%{transform:translate(1px,2px) scale(0.98)}100%{transform:translate(0,0) scale(1)}}
+        @keyframes gh1{0%,100%{transform:translate(-5px,-3px) scale(1.05);opacity:0.3}50%{transform:translate(5px,3px) scale(1.15);opacity:0.5}}
+        @keyframes gh2{0%,100%{transform:translate(4px,4px) scale(1.05);opacity:0.25}50%{transform:translate(-4px,-4px) scale(1.15);opacity:0.4}}
+        @keyframes trailPulse{0%,100%{opacity:0.4;transform:scaleX(1)}50%{opacity:0.7;transform:scaleX(1.1)}}
+        @keyframes gatePG{0%,100%{box-shadow:0 0 20px var(--gc),inset 0 0 15px rgba(255,255,255,0.02),0 4px 12px rgba(0,0,0,0.2)}50%{box-shadow:0 0 30px var(--gc),0 0 12px var(--gc),inset 0 0 15px rgba(255,255,255,0.04),0 4px 12px rgba(0,0,0,0.2)}}
+        @keyframes snapRing{0%{transform:scale(0.8);opacity:1}100%{transform:scale(1.3);opacity:0}}
+        @keyframes pB{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--px),var(--py)) scale(0);opacity:0}}
+        @keyframes fl{0%{transform:translate(-50%,-50%) scale(0.5);opacity:0.9}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
+        @keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
+        @keyframes fadeUp{0%{opacity:0;transform:translateY(-5px)}100%{opacity:1;transform:translateY(0)}}
+        @keyframes confetti{0%{transform:translateY(0) rotate(0deg) scale(1);opacity:0.8}100%{transform:translateY(-60px) rotate(${180+Math.random()*360}deg) scale(${0.5+Math.random()*0.8});opacity:0.1}}
+        @keyframes wE{0%{transform:scale(0.85) translateY(15px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
+        @keyframes wBr{0%,100%{box-shadow:0 0 60px rgba(34,197,94,0.1),0 0 120px rgba(6,182,212,0.05),0 25px 60px rgba(0,0,0,0.3)}50%{box-shadow:0 0 80px rgba(34,197,94,0.15),0 0 150px rgba(6,182,212,0.08),0 25px 60px rgba(0,0,0,0.3)}}
+        @keyframes wSp{0%{transform:rotate(0deg) scale(0.3);opacity:0}100%{transform:rotate(360deg) scale(1);opacity:1}}
+        @keyframes wGl{0%{filter:brightness(1)}100%{filter:brightness(1.2)}}
+        .scrollbar-hide::-webkit-scrollbar{display:none}
+        .scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}
+      `}</style>
+    </div>
+  );
+}
+
+      // Initialize Application
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<QuantumGame />);
+    </script>
+</body>
+</html>
