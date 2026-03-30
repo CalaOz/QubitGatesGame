@@ -445,6 +445,10 @@ function QuantumGame(){
                 return(
                   <div key={i} className="flex flex-shrink-0 flex-col items-center gap-1 relative">
                     {isN&&<div className="absolute -top-6 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-lg text-[9px] md:text-xs tracking-widest font-extrabold whitespace-nowrap z-50" style={{background:noiseHit?"#ea580c":"#ffffff",border:"2px solid #ea580c",color:noiseHit?"#ffffff":"#ea580c",boxShadow:"0 4px 6px rgba(234,88,12,0.2)"}}>⚡ NOISE</div>}
+                    {isSel&&!filled&&<div className="absolute -top-12 md:-top-16 left-1/2 -translate-x-1/2 whitespace-nowrap z-[60] flex flex-col items-center justify-center animate-bounce pointer-events-none">
+                      <div className="bg-sky-500 text-white text-[10px] md:text-xs font-black px-3 py-1.5 md:py-2 rounded-xl shadow-lg shadow-sky-500/30 border-2 border-sky-400 tracking-wider">Now pick a gate below ↓</div>
+                      <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-sky-500 mt-[-2px]"/>
+                    </div>}
                     <button ref={el=>slotRefs.current[i]=el} onClick={()=>slotClick(i)} onDrop={e=>drop(i,e)} onDragOver={e=>e.preventDefault()}
                       className={`transition-all duration-300 relative ${szMap}`} style={{
                         borderRadius:14,
@@ -565,7 +569,7 @@ function QuantumGame(){
           {!won&&(
             <div className="flex-none px-2 sm:px-4 md:px-7 py-3 md:py-4 rounded-xl md:rounded-2xl flex flex-col justify-center min-w-min" style={{background:"#ffffff",backdropFilter:"blur(12px)",border:"1px solid #e2e8f0",boxShadow:"0 1px 3px rgba(0,0,0,0.02)"}}>
               <div className="text-[6.5px] sm:text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.25em] mb-2 md:mb-3 text-center font-bold" style={{color:selSlot!==null?"#0ea5e9":"rgba(255,255,255,0.4)"}}>
-                {selSlot!==null?`PLACE INTO SLOT ${selSlot+1}`:"SELECT A GATE"}
+                SELECT A GATE
               </div>
               <div className="flex gap-1.5 sm:gap-3 md:gap-6 justify-center items-start">
                 {lv.gates.map(g=>{
