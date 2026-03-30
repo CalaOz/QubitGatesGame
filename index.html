@@ -127,19 +127,26 @@ const Bloch=({th,ph,v})=>{
   const col=v==="zero"?"#0ea5e9":v==="one"?"#ef4444":"#a78bfa";
   return(
     <svg viewBox="0 0 112 112" className="w-[85px] h-[85px] md:w-[112px] md:h-[112px]">
+    <svg viewBox="0 0 120 120" className="w-[85px] h-[85px] md:w-[112px] md:h-[112px]">
       <defs>
         <radialGradient id="bBg" cx="45%" cy="38%" r="55%"><stop offset="0%" stopColor="rgba(255,255,255,0.9)"/><stop offset="100%" stopColor="rgba(226,232,240,0.8)"/></radialGradient>
         <filter id="bGl"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       </defs>
-      <circle cx={cx} cy={cy} r={r+3} fill="none" stroke="rgba(148,163,184,0.3)" strokeWidth="1"/>
-      <circle cx={cx} cy={cy} r={r} fill="url(#bBg)" stroke="rgba(148,163,184,0.4)" strokeWidth="0.5"/>
-      <ellipse cx={cx} cy={cy} rx={r*0.65} ry={r*0.18} fill="none" stroke="rgba(148,163,184,0.5)" strokeWidth="0.8"/>
-      <ellipse cx={cx} cy={cy} rx={r*0.18} ry={r} fill="none" stroke="rgba(148,163,184,0.4)" strokeWidth="0.5"/>
-      <text x={cx} y={cy-r-6} textAnchor="middle" fill="#0ea5e9" fontSize="9" fontWeight="700" fontFamily="system-ui">|0⟩</text>
-      <text x={cx} y={cy+r+13} textAnchor="middle" fill="#f87171" fontSize="9" fontWeight="700" fontFamily="system-ui">|1⟩</text>
-      <line x1={cx} y1={cy} x2={cx+px} y2={cy+py} stroke={col} strokeWidth="2" opacity="0.8" style={{transition:"all 0.6s cubic-bezier(0.34,1.56,0.64,1)"}}/>
-      <circle cx={cx+px} cy={cy+py} r="6" fill={col} filter="url(#bGl)" style={{transition:"all 0.6s cubic-bezier(0.34,1.56,0.64,1)"}}/>
-      <circle cx={cx} cy={cy} r="2" fill="rgba(6,182,212,0.4)"/>
+      <circle cx={cx} cy={cy} r={r} fill="url(#bBg)" stroke="rgba(203,213,225,0.5)" strokeWidth="1.5"/>
+      <path d={`M${cx-r} ${cy} a${r} 14 0 1 0 ${r*2} 0 a${r} 14 0 1 0 -${r*2} 0`} fill="none" stroke="rgba(203,213,225,0.4)" strokeWidth="1" strokeDasharray="3 3"/>
+      <line x1={cx} y1={cy-r} x2={cx} y2={cy+r} stroke="rgba(203,213,225,0.3)" strokeWidth="1" strokeDasharray="2 2"/>
+      
+      {/* State vector */}
+      <g style={{transition:"all 0.5s cubic-bezier(0.34,1.56,0.64,1)"}}>
+        <line x1={cx} y1={cy} x2={cx+px} y2={cy+py} stroke={col} strokeWidth="2.5" strokeLinecap="round"/>
+        <circle cx={cx+px} cy={cy+py} r="4" fill={col} filter="url(#bGl)"/>
+      </g>
+      
+      {/* Axis labels */}
+      <g style={{opacity:0.8}}>
+        <text x={cx} y="11" fontSize="11" fill="#64748b" textAnchor="middle" fontWeight="800">|0⟩</text>
+        <text x={cx} y="118" fontSize="11" fill="#64748b" textAnchor="middle" fontWeight="800">|1⟩</text>
+      </g>
     </svg>
   );
 };
@@ -356,21 +363,46 @@ function QuantumGame(){
       </div>
 
       {/* ═══ Header ═══ */}
-      <div className="relative z-20 flex flex-col sm:flex-row items-center justify-between px-4 md:px-8 py-3 gap-3" style={{background:"rgba(255,255,255,0.95)",backdropFilter:"blur(16px)",borderBottom:"1px solid rgba(226,232,240,1)"}}>
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-[0.25em]" style={{color:"#1e293b"}}>
-          QUBIT <span style={{color:"#0ea5e9"}}>PATH</span>
-        </h1>
-        <div className="flex items-center gap-2 md:gap-3">
-          {/* Timer panel */}
-          <div className="px-3 py-1.5 rounded-xl text-[11px] font-bold tracking-wider tabular-nums text-slate-700" style={{background:"#f1f5f9",border:"1px solid rgba(203,213,225,1)"}}>{fmt(timer)}</div>
-          {/* Level badge */}
-          <div className="px-3 py-1.5 rounded-xl text-[11px] font-bold tracking-wider" style={{background:"#f1f5f9",border:`1px solid ${tierCol}40`,color:tierCol}}>{lv.id}/20</div>
-          <button onClick={()=>setShowLvls(true)} className="px-3.5 py-1.5 rounded-xl text-[11px] tracking-wider font-bold text-cyan-600 transition-all hover:scale-105 active:scale-95" style={{background:"#f1f5f9",border:"1px solid rgba(203,213,225,1)"}}>LEVELS</button>
+      <div className="w-full flex justify-between items-center px-4 md:px-8 py-3 relative z-20">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background:"#ffffff",border:"1px solid rgba(14,165,233,0.3)",boxShadow:"0 0 15px rgba(14,165,233,0.15)"}}>
+              <div className="w-4 h-4 rounded-full border-2 border-cyan-400 animate-pulse" style={{borderTopColor:"transparent",transform:"rotate(45deg)"}}/>
+            </div>
+            <span className="text-lg md:text-xl font-black tracking-widest text-slate-700">QUBIT<span className="text-cyan-500">PATH</span></span>
+          </div>
         </div>
-      </div>
 
       {/* ═══ Briefing Panel ═══ */}
       <div className="relative z-10 mx-3 md:mx-8 mt-3 px-4 md:px-5 py-3 rounded-2xl" style={{background:"#ffffff",backdropFilter:"blur(12px)",border:"1px solid #e2e8f0",boxShadow:"0 1px 3px rgba(0,0,0,0.02)"}}>
+        {/* ═══ Header ═══ */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 md:mb-8 gap-4 px-2 md:px-0 mt-2 md:mt-3">
+          <div className="flex items-center gap-2 md:gap-3">
+            <button onClick={()=>setShowLvls(true)} className="flex items-center gap-2 transition-all duration-300 active:scale-95 hover:scale-[1.02]" style={{background:"#ffffff",border:"1px solid rgba(226,232,240,1)",padding:"8px 16px",borderRadius:"14px",boxShadow:"0 4px 15px rgba(0,0,0,0.03)"}}>
+              <div className="text-sm md:text-base font-extrabold tracking-widest text-slate-700">LEVEL {lv.id}</div>
+              <div className="text-[10px] opacity-70">▼</div>
+            </button>
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border" style={{background:`${tierCol}0.05)`,borderColor:`${tierCol}0.2)`}}>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{background:tierCol,boxShadow:`0 0 8px ${tierCol}`}}/>
+              <span className="text-[9px] md:text-[10px] font-bold tracking-widest" style={{color:tierCol,textShadow:`0 0 5px ${tierCol}0.3)`}}>{lv.tier}</span>
+            </div>
+            <button onClick={()=>setShowInstructions(true)} className="text-[10px] md:text-xs font-bold tracking-widest transition-colors hover:scale-105 active:scale-95 whitespace-nowrap" style={{color:"#0ea5e9",padding:"8px 14px",border:"2px solid rgba(14,165,233,0.3)",borderRadius:"14px",background:"rgba(14,165,233,0.05)",boxShadow:"0 4px 10px rgba(14,165,233,0.1)"}}>HOW TO PLAY ?</button>
+          </div>
+          <div className="flex flex-col items-center md:items-end">
+            <span className="text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-slate-400 mb-1">MISSION</span>
+            <span className="text-sm md:text-base font-extrabold text-slate-700 text-center md:text-right max-w-[280px] leading-snug">{lv.title}</span>
+          </div>
+        </div>
+
+        {/* Target row */}
+        <div className="mb-5 md:mb-7 flex items-center gap-4 md:gap-5">
+          <div className="flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-2xl flex-shrink-0" style={{background:"#ffffff",border:"1px solid rgba(226,232,240,1)",boxShadow:"0 4px 15px rgba(0,0,0,0.02)"}}>
+            <Orb v={targetV} size={lv.slots>5?24:28} anim={false}/>
+          </div>
+          <div className="flex flex-col justify-center max-w-[320px]">
+            <div className="text-xs md:text-sm font-bold tracking-widest text-slate-400 mb-1">TARGET STATE</div>
+            <div className="text-base md:text-lg font-bold text-slate-700 leading-snug">{lv.desc}</div>
+          </div>
+        </div>
         <div className="flex items-start gap-3">
           <span className="text-2xl mt-0.5">📜</span>
           <div className="flex-1 min-w-0">
@@ -387,18 +419,6 @@ function QuantumGame(){
 
       {/* ═══ Game Area ═══ */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-3 md:px-8 py-4 md:py-6 overflow-auto">
-
-        {/* Target row */}
-        <div className="mb-5 md:mb-7 flex items-center gap-3 md:gap-5">
-          <Orb v={startV} size={28} anim={false}/>
-          <span className="text-3xl font-bold text-slate-400">→</span>
-          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl" style={{background:"#ffffff",border:"1px solid #e2e8f0",boxShadow:"0 1px 3px rgba(0,0,0,0.02)"}}>
-            <span className="text-2xl font-extrabold tracking-wider text-cyan-600">
-              {lv.target==="zero"?"|0⟩":lv.target==="one"?"|1⟩":lv.target==="superposition"?"|ψ⟩":lv.target==="super_plus"?"|+⟩":"|−⟩"}
-            </span>
-            <Orb v={targetV} size={28}/>
-          </div>
-        </div>
 
         {/* ═══ Track ═══ */}
         <div ref={trackRef} className="relative w-full max-w-2xl gTrack overflow-x-auto pt-8 pb-6 scrollbar-hide">
@@ -451,7 +471,7 @@ function QuantumGame(){
                           :isSel?"0 0 12px rgba(226,232,240,1)"
                           :"none",
                         transform:isP?"scale(1.12)":isSnap?"scale(1.08)":qPos===i?"scale(1.04)":"scale(1)",
-                        outline:qPos===i?"2px solid rgba(6,182,212,0.3)":"none",outlineOffset:3,
+                        outlineOffset:3,
                       }}>
                       {/* Snap pulse ring */}
                       {isSnap&&<div className="absolute inset-[-4px] rounded-2xl pointer-events-none" style={{border:teachMode?"2px solid rgba(234,88,12,0.8)":"2px solid rgba(6,182,212,0.6)",animation:"snapRing 0.4s ease-out forwards"}}/>}
@@ -588,9 +608,6 @@ function QuantumGame(){
           </div>
         </div>
       </div>
-
-      {/* Code button */}
-      <button onClick={()=>setShowCode(!showCode)} className="fixed bottom-3 right-3 z-40 transition-all duration-300 active:scale-95 hover:scale-105" style={{padding:"6px 14px",borderRadius:12,fontSize:13,letterSpacing:"0.15em",fontWeight:700,background:"rgba(255,255,255,0.95)",backdropFilter:"blur(12px)",border:"1px solid rgba(6,182,212,0.25)",color:"#0ea5e9"}}>{"</>"}</button>
 
       {/* Code viewer */}
       {showCode&&<div className="fixed inset-0 z-[90] flex items-center justify-center p-4" style={{background:"rgba(248,250,252,0.85)",backdropFilter:"blur(16px)"}} onClick={()=>setShowCode(false)}>
