@@ -500,7 +500,17 @@ function QuantumGame(){
         {/* Action Buttons */}
         <div className="mt-3 md:mt-7 flex gap-1.5 sm:gap-3 items-center flex-nowrap justify-center w-full px-1">
           {!won&&!failed&&<>
-            <button onClick={run} disabled={!hasG||running} className="transition-all duration-300 active:scale-95 hover:scale-[1.03] flex-1 md:flex-none px-0 py-2.5 md:px-9 md:py-3 rounded-xl md:rounded-2xl text-sm sm:text-base md:text-2xl font-extrabold tracking-widest whitespace-nowrap flex items-center justify-center" style={{background:hasG&&!running?"#22c55e":"#ffffff",border:`2px solid ${hasG&&!running?"#16a34a":"rgba(226,232,240,1)"}`,color:hasG&&!running?"#ffffff":"#94a3b8",cursor:hasG&&!running?"pointer":"not-allowed",boxShadow:hasG&&!running?"0 6px 20px rgba(34,197,94,0.4)":"none"}}><span style={{marginLeft:4}}>▶</span></button>
+            <button onClick={run} disabled={!hasG||running} className={`transition-all duration-300 flex-1 md:flex-none px-3 py-2.5 md:px-10 md:py-3 rounded-xl md:rounded-2xl text-sm sm:text-base md:text-xl font-black tracking-[0.2em] whitespace-nowrap flex items-center justify-center ${(!hasG||running)?"":"active:scale-95 hover:scale-[1.03]"}`}
+              style={{
+                background:hasG&&!running?"#22c55e":"rgba(34,197,94,0.04)",
+                border:hasG&&!running?"2px solid #16a34a":"2px solid rgba(34,197,94,0.5)",
+                color:hasG&&!running?"#ffffff":"rgba(34,197,94,0.7)",
+                cursor:hasG&&!running?"pointer":"not-allowed",
+                boxShadow:hasG&&!running?"0 6px 20px rgba(34,197,94,0.4)":"none",
+                opacity:(!hasG||running)?0.7:1
+              }}>
+              RUN <span className="ml-1 md:ml-2 text-base md:text-2xl mt-0.5">▶</span>
+            </button>
             <button onClick={()=>{setSlots(lv.ans);setTeachMode(true);setShowTeachModal(true);}} disabled={running} className="transition-all duration-300 active:scale-95 hover:scale-[1.03] flex-1 md:flex-none px-2 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl text-[9px] sm:text-xs md:text-base font-extrabold tracking-widest whitespace-nowrap" style={{background:"rgba(249,115,22,0.1)",border:"2px solid rgba(249,115,22,0.4)",color:"#ea580c",boxShadow:"0 0 15px rgba(249,115,22,0.15)"}}>💡 TEACH ME</button>
             <button onClick={()=>reset(lvlIdx)} disabled={running} className="transition-all duration-300 active:scale-95 hover:scale-[1.03] flex-1 md:flex-none px-2 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl text-[9px] sm:text-xs md:text-base font-extrabold tracking-widest whitespace-nowrap" style={{background:"#ffffff",border:"2px solid #cbd5e1",boxShadow:"0 2px 4px rgba(0,0,0,0.03)",color:"#1e293b"}}>⟲ RESET</button>
           </>}
