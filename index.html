@@ -362,62 +362,50 @@ function QuantumGame(){
       </div>
 
       {/* ═══ Header ═══ */}
-      <div className="w-full flex justify-between items-center px-4 md:px-8 py-3 relative z-20">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background:"#ffffff",border:"1px solid rgba(14,165,233,0.3)",boxShadow:"0 0 15px rgba(14,165,233,0.15)"}}>
-              <div className="w-4 h-4 rounded-full border-2 border-cyan-400 animate-pulse" style={{borderTopColor:"transparent",transform:"rotate(45deg)"}}/>
-            </div>
-            <span className="text-lg md:text-xl font-black tracking-widest text-slate-700">QUBIT<span className="text-cyan-500">PATH</span></span>
-          </div>
+      <div className="relative z-20 flex flex-col sm:flex-row items-center justify-between px-4 md:px-8 py-3 gap-3" style={{background:"rgba(255,255,255,0.95)",backdropFilter:"blur(16px)",borderBottom:"1px solid rgba(226,232,240,1)"}}>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl md:text-4xl font-black tracking-[0.2em]" style={{color:"#1e293b"}}>
+            QUBIT<span style={{color:"#0ea5e9", marginLeft:"4px"}}>PATH</span>
+          </h1>
         </div>
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Level badge */}
+          <div className="px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl text-xs md:text-sm font-bold tracking-wider" style={{background:"#f1f5f9",border:`1px solid rgba(203,213,225,1)`,color:"#475569",boxShadow:"0 2px 5px rgba(0,0,0,0.02)"}}>{lv.id}/20</div>
+          <button onClick={()=>setShowLvls(true)} className="px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl text-xs md:text-sm tracking-wider font-extrabold text-cyan-600 transition-all hover:scale-105 active:scale-95" style={{background:"rgba(14,165,233,0.05)",border:"1.5px solid rgba(14,165,233,0.3)",boxShadow:"0 2px 5px rgba(14,165,233,0.1)"}}>LEVELS</button>
+          <button onClick={()=>setShowInstructions(true)} className="px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl text-xs md:text-sm tracking-wider font-extrabold text-white transition-all hover:scale-105 active:scale-95 whitespace-nowrap" style={{background:"#0ea5e9",border:"1.5px solid #0284c7",boxShadow:"0 4px 10px rgba(14,165,233,0.3)"}}>HOW TO PLAY</button>
+        </div>
+      </div>
 
       {/* ═══ Briefing Panel ═══ */}
-      <div className="relative z-10 mx-3 md:mx-8 mt-3 px-4 md:px-5 py-3 rounded-2xl" style={{background:"#ffffff",backdropFilter:"blur(12px)",border:"1px solid #e2e8f0",boxShadow:"0 1px 3px rgba(0,0,0,0.02)"}}>
-        {/* ═══ Header ═══ */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 md:mb-8 gap-4 px-2 md:px-0 mt-2 md:mt-3">
-          <div className="flex items-center gap-2 md:gap-3">
-            <button onClick={()=>setShowLvls(true)} className="flex items-center gap-2 transition-all duration-300 active:scale-95 hover:scale-[1.02]" style={{background:"#ffffff",border:"1px solid rgba(226,232,240,1)",padding:"8px 16px",borderRadius:"14px",boxShadow:"0 4px 15px rgba(0,0,0,0.03)"}}>
-              <div className="text-sm md:text-base font-extrabold tracking-widest text-slate-700">LEVEL {lv.id}</div>
-              <div className="text-[10px] opacity-70">▼</div>
-            </button>
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border" style={{background:`${tierCol}0.05)`,borderColor:`${tierCol}0.2)`}}>
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{background:tierCol,boxShadow:`0 0 8px ${tierCol}`}}/>
-              <span className="text-[9px] md:text-[10px] font-bold tracking-widest" style={{color:tierCol,textShadow:`0 0 5px ${tierCol}0.3)`}}>{lv.tier}</span>
-            </div>
-            <button onClick={()=>setShowInstructions(true)} className="text-[10px] md:text-xs font-bold tracking-widest transition-colors hover:scale-105 active:scale-95 whitespace-nowrap" style={{color:"#0ea5e9",padding:"8px 14px",border:"2px solid rgba(14,165,233,0.3)",borderRadius:"14px",background:"rgba(14,165,233,0.05)",boxShadow:"0 4px 10px rgba(14,165,233,0.1)"}}>HOW TO PLAY ?</button>
-          </div>
-          <div className="flex flex-col items-center md:items-end">
-            <span className="text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-slate-400 mb-1">MISSION</span>
-            <span className="text-sm md:text-base font-extrabold text-slate-700 text-center md:text-right max-w-[280px] leading-snug">{lv.title}</span>
-          </div>
-        </div>
-
-        {/* Target row */}
-        <div className="mb-5 md:mb-7 flex items-center gap-4 md:gap-5">
-          <div className="flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-2xl flex-shrink-0" style={{background:"#ffffff",border:"1px solid rgba(226,232,240,1)",boxShadow:"0 4px 15px rgba(0,0,0,0.02)"}}>
-            <Orb v={targetV} size={lv.slots>5?24:28} anim={false}/>
-          </div>
-          <div className="flex flex-col justify-center max-w-[320px]">
-            <div className="text-xs md:text-sm font-bold tracking-widest text-slate-400 mb-1">TARGET STATE</div>
-            <div className="text-base md:text-lg font-bold text-slate-700 leading-snug">{lv.desc}</div>
-          </div>
-        </div>
-        <div className="flex items-start gap-3">
-          <span className="text-2xl mt-0.5">📜</span>
+      <div className="relative z-10 w-full max-w-[85rem] mx-auto px-4 md:px-8 mt-2 md:mt-4 transition-all duration-300">
+        <div className="w-full px-5 py-4 rounded-2xl flex items-start gap-4" style={{background:"#ffffff",border:"1px solid rgba(226,232,240,1)",boxShadow:"0 4px 20px rgba(0,0,0,0.03)"}}>
+          <span className="text-2xl mt-0.5" style={{filter:"drop-shadow(0 2px 4px rgba(245,158,11,0.3))"}}>📜</span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="text-[11px] font-extrabold tracking-[0.2em]" style={{color:tierCol}}>{lv.title.toUpperCase()}</span>
+              <span className="text-sm font-black tracking-[0.1em]" style={{color:"#0ea5e9"}}>{lv.title.toUpperCase()}</span>
               <span className="text-slate-300">·</span>
-              <span className="text-[11px] font-semibold text-amber-600">{lv.hint}</span>
+              <span className="text-sm font-bold text-amber-600">{lv.hint}</span>
             </div>
-            <p className="text-[13px] leading-relaxed text-slate-800 font-medium">{lv.briefing}</p>
-            {lv.minGates>0&&<p className="text-[11px] mt-1 font-bold text-pink-600">⚡ Minimum {lv.minGates} gates required</p>}
+            <p className="text-base md:text-lg leading-relaxed text-slate-800 font-medium">{lv.briefing}</p>
+            {lv.minGates>0&&<p className="text-xs md:text-sm mt-1 font-bold text-pink-600">⚡ Minimum {lv.minGates} gates required</p>}
           </div>
         </div>
       </div>
 
       {/* ═══ Game Area ═══ */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-3 md:px-8 py-4 md:py-6 overflow-auto">
+
+        {/* Target row */}
+        <div className="mb-8 md:mb-12 flex items-center gap-3 md:gap-6 opacity-90 transition-all duration-300 hover:opacity-100 hover:scale-105">
+          <Orb v={startV} size={32} anim={false}/>
+          <span className="text-4xl font-black text-slate-300 tracking-tighter">→</span>
+          <div className="flex items-center gap-3 px-5 py-3 rounded-3xl" style={{background:"#ffffff",border:"2px solid rgba(226,232,240,1)",boxShadow:"0 4px 15px rgba(0,0,0,0.04)"}}>
+            <span className="text-3xl font-extrabold tracking-wider text-cyan-600">
+              {lv.target==="zero"?"|0⟩":lv.target==="one"?"|1⟩":lv.target==="superposition"?"|ψ⟩":lv.target==="super_plus"?"|+⟩":"|−⟩"}
+            </span>
+            <Orb v={targetV} size={32}/>
+          </div>
+        </div>
 
         {/* ═══ Track ═══ */}
         <div ref={trackRef} className="relative w-full max-w-2xl gTrack overflow-x-auto pt-8 pb-6 scrollbar-hide">
