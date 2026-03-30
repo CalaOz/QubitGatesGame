@@ -387,7 +387,6 @@ function QuantumGame(){
 
       {/* ═══ Game Area ═══ */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-3 md:px-8 py-4 md:py-6 overflow-auto">
-        <div className="flex justify-end px-2 md:px-0 mt-3 md:mt-4 w-full max-w-2xl mx-auto"><button onClick={()=>setShowInstructions(true)} className="text-[10px] md:text-xs font-bold tracking-widest transition-colors hover:scale-105 active:scale-95" style={{color:"#0ea5e9",padding:"6px 14px",border:"1.5px solid rgba(14,165,233,0.3)",borderRadius:"20px",background:"rgba(14,165,233,0.05)"}}>HOW TO PLAY ?</button></div>
 
         {/* Target row */}
         <div className="mb-5 md:mb-7 flex items-center gap-3 md:gap-5">
@@ -628,19 +627,21 @@ const applyGate = (state, gate) => {
       
       {/* Instructions Modal */}
       {showInstructions&&<div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-sm" style={{background:"rgba(255,255,255,0.7)"}} onClick={()=>setShowInstructions(false)}>
-        <div className="max-w-md w-full rounded-3xl p-6 md:p-8 relative" style={{background:"#ffffff",border:"1px solid rgba(14,165,233,0.4)",boxShadow:"0 0 60px rgba(14,165,233,0.15),0 20px 40px rgba(0,0,0,0.2)"}} onClick={e=>e.stopPropagation()}>
-          <h2 className="text-2xl font-extrabold text-center mb-4" style={{color:"#0ea5e9",letterSpacing:"0.05em"}}>HOW TO PLAY</h2>
-          <div className="text-xs md:text-sm text-slate-600 space-y-4 font-medium mb-6">
+        <div className="max-w-xl w-full rounded-3xl p-6 md:p-8 relative" style={{background:"#ffffff",border:"1px solid rgba(14,165,233,0.4)",boxShadow:"0 0 60px rgba(14,165,233,0.15),0 20px 40px rgba(0,0,0,0.2)"}} onClick={e=>e.stopPropagation()}>
+          <h2 className="text-3xl font-black text-center mb-6" style={{color:"#0ea5e9",letterSpacing:"0.05em"}}>HOW TO PLAY</h2>
+          <div className="text-base md:text-lg text-slate-600 space-y-4 font-medium mb-8 leading-relaxed">
             <p>Welcome to Quantum Lab! Your goal is to guide the qubit to its <span className="font-bold text-green-500">Target State 🎯</span>.</p>
-            <ul className="list-none space-y-2">
-              <li className="flex items-center gap-2"><span className="text-red-500 font-black text-lg w-5 text-center">X</span> <strong>Pauli-X:</strong> Flips the qubit (0 ↔ 1).</li>
-              <li className="flex items-center gap-2"><span className="text-purple-500 font-black text-lg w-5 text-center">H</span> <strong>Hadamard:</strong> Creates a superposition (both 0 & 1).</li>
-              <li className="flex items-center gap-2"><span className="text-cyan-500 font-black text-lg w-5 text-center">Z</span> <strong>Phase-Z:</strong> Reverses the phase wave.</li>
-              <li className="flex items-center gap-2"><span className="text-orange-500 font-black text-xl leading-none w-5 text-center">⚡</span> <strong>Noise:</strong> Destroys superpositions. Shield the track!</li>
+            <ul className="list-none space-y-3">
+              <li className="flex items-start gap-3"><span className="text-red-500 font-black text-xl w-6 text-center mt-0.5">X</span> <span><strong>Pauli-X:</strong> Flips the qubit (0 ↔ 1).</span></li>
+              <li className="flex items-start gap-3"><span className="text-purple-500 font-black text-xl w-6 text-center mt-0.5">H</span> <span><strong>Hadamard:</strong> Creates a superposition (both 0 & 1).</span></li>
+              <li className="flex items-start gap-3"><span className="text-cyan-500 font-black text-xl w-6 text-center mt-0.5">Z</span> <span><strong>Phase-Z:</strong> Reverses the phase wave.</span></li>
+              <li className="flex items-start gap-3"><span className="text-orange-500 font-black text-2xl leading-none w-6 text-center mt-1">⚡</span> <span><strong>Noise:</strong> Destroys superpositions. Shield the track!</span></li>
+              <li className="flex items-start gap-3"><span className="text-amber-500 font-black text-xl w-6 text-center mt-0.5" style={{filter:"drop-shadow(0 0 4px rgba(245,158,11,0.5))"}}>💡</span> <span><strong>Teach Me:</strong> Shows you the correct gates and explains the math.</span></li>
+              <li className="flex items-start gap-3"><span className="text-indigo-400 font-black text-xl w-6 text-center mt-0.5">🌐</span> <span><strong>Bloch Sphere:</strong> Visualizes the exact 3D quantum state of your qubit in real-time below the track!</span></li>
             </ul>
-            <p>Drag gates from the toolbox onto the track slots to modify the flight path. Hit <span className="text-white bg-green-500 px-1.5 py-0.5 rounded font-bold text-[10px]">▶</span> to test your circuit!</p>
+            <p className="font-bold">Select a slot on the track, then select a gate in the toolbox to place it. Hit <span className="text-white bg-green-500 px-2 py-1 rounded font-black text-sm relative -top-0.5">▶ RUN</span> to test your circuit!</p>
           </div>
-          <button onClick={()=>setShowInstructions(false)} className="w-full py-3 rounded-xl text-sm tracking-widest font-extrabold transition-all duration-200 active:scale-95" style={{background:"#0ea5e9",color:"#ffffff",boxShadow:"0 4px 15px rgba(14,165,233,0.3)"}}>LET'S GO!</button>
+          <button onClick={()=>setShowInstructions(false)} className="w-full py-4 rounded-xl text-lg tracking-widest font-extrabold transition-all duration-200 active:scale-95" style={{background:"#0ea5e9",color:"#ffffff",boxShadow:"0 4px 15px rgba(14,165,233,0.3)"}}>LET'S GO!</button>
         </div>
       </div>}
 
