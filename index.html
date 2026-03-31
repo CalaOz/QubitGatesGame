@@ -371,7 +371,7 @@ function QuantumGame(){
         </div>
         <div className="flex items-center gap-2 md:gap-3">
           {/* Level badge */}
-          <div className="px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl text-xs md:text-sm font-bold tracking-wider" style={{background:"#f1f5f9",border:`1px solid rgba(203,213,225,1)`,color:"#475569",boxShadow:"0 2px 5px rgba(0,0,0,0.02)"}}>{lv.id}/20</div>
+          <div className="px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl text-xs md:text-sm font-bold tracking-wider" style={{background:"#f1f5f9",border:`1px solid rgba(203,213,225,1)`,color:"#475569",boxShadow:"0 2px 5px rgba(0,0,0,0.02)"}}>LEVEL {lv.id}/20</div>
           <button onClick={()=>setShowLvls(true)} className="px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl text-xs md:text-sm tracking-wider font-extrabold text-cyan-600 transition-all hover:scale-105 active:scale-95" style={{background:"rgba(14,165,233,0.05)",border:"1.5px solid rgba(14,165,233,0.3)",boxShadow:"0 2px 5px rgba(14,165,233,0.1)"}}>LEVELS</button>
           <button onClick={()=>setShowInstructions(true)} className="px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl text-xs md:text-sm tracking-wider font-extrabold text-white transition-all hover:scale-105 active:scale-95 whitespace-nowrap" style={{background:"#0ea5e9",border:"1.5px solid #0284c7",boxShadow:"0 4px 10px rgba(14,165,233,0.3)"}}>HOW TO PLAY</button>
         </div>
