@@ -40,11 +40,16 @@
       margin: 0;
       padding: 0;
       background-color: #0b1528;
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+    body::-webkit-scrollbar, html::-webkit-scrollbar {
+      display: none; /* Chrome, Safari and Opera */
     }
     #root {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
   </style>
 </head>
