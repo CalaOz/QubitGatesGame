@@ -427,9 +427,11 @@ function QuantumGame(){
   const tierCol=TIER_COLORS[lv.tier];
 
   return(
-    <div className="min-h-screen text-slate-800 overflow-hidden relative flex flex-col" style={{fontFamily:"'Inter',system-ui,sans-serif",background:"#e2e8f0"}}>
+    <div className="min-h-screen text-slate-800 overflow-y-auto overflow-x-hidden scrollbar-hide relative flex flex-col" style={{fontFamily:"'Inter',system-ui,sans-serif",background:"#e2e8f0"}}>
 
       <style>{`
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     @keyframes confettiFall { 0% { transform: translateY(0vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(120vh) rotate(720deg); opacity: 0; } }
     @keyframes popIn { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
     @keyframes floatTrophy { 0% { transform: translate(-50%, -50%) translateY(0px) scale(1); } 100% { transform: translate(-50%, -50%) translateY(-20px) scale(1.05); } }
