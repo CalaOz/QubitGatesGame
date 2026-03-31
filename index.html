@@ -504,7 +504,7 @@ function QuantumGame(){
         {/* Action Buttons */}
         <div className="mt-3 md:mt-7 flex gap-1.5 sm:gap-3 items-center flex-nowrap justify-center w-full px-1">
           {!won&&!failed&&<>
-            <button onClick={run} disabled={!hasG||running} className={`transition-all duration-300 flex-1 md:flex-none px-3 py-2.5 md:px-10 md:py-3 rounded-xl md:rounded-2xl text-sm sm:text-base md:text-xl font-black tracking-[0.2em] whitespace-nowrap flex items-center justify-center ${(!hasG||running)?"":"active:scale-95 hover:scale-[1.03]"}`}
+            <button onClick={run} disabled={!hasG||running} className={`transition-all duration-300 flex-1 md:flex-none px-2 sm:px-3 py-2.5 md:px-8 md:py-3 rounded-xl md:rounded-2xl text-[10px] sm:text-xs md:text-lg font-black tracking-[0.1em] md:tracking-[0.15em] whitespace-nowrap flex items-center justify-center gap-1 md:gap-2 ${(!hasG||running)?"":"active:scale-95 hover:scale-[1.03]"}`}
               style={{
                 background:hasG&&!running?"#22c55e":"rgba(34,197,94,0.04)",
                 border:hasG&&!running?"2px solid #16a34a":"2px solid rgba(34,197,94,0.5)",
@@ -513,10 +513,30 @@ function QuantumGame(){
                 boxShadow:hasG&&!running?"0 6px 20px rgba(34,197,94,0.4)":"none",
                 opacity:(!hasG||running)?0.7:1
               }}>
-              RUN <span className="ml-1 md:ml-2 text-base md:text-2xl mt-0.5">▶</span>
+              <span className="text-sm md:text-xl mt-0.5">▶</span> RUN
             </button>
-            <button onClick={()=>{setSlots(lv.ans);setTeachMode(true);setShowTeachModal(true);}} disabled={running} className="transition-all duration-300 active:scale-95 hover:scale-[1.03] flex-1 md:flex-none px-2 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl text-[9px] sm:text-xs md:text-base font-extrabold tracking-widest whitespace-nowrap" style={{background:"rgba(249,115,22,0.1)",border:"2px solid rgba(249,115,22,0.4)",color:"#ea580c",boxShadow:"0 0 15px rgba(249,115,22,0.15)"}}>💡 TEACH ME</button>
-            <button onClick={()=>reset(lvlIdx)} disabled={running} className="transition-all duration-300 active:scale-95 hover:scale-[1.03] flex-1 md:flex-none px-2 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl text-[9px] sm:text-xs md:text-base font-extrabold tracking-widest whitespace-nowrap" style={{background:"#ffffff",border:"2px solid #cbd5e1",boxShadow:"0 2px 4px rgba(0,0,0,0.03)",color:"#1e293b"}}>⟲ RESET</button>
+            <button onClick={()=>{setSlots(lv.ans);setTeachMode(true);setShowTeachModal(true);}} disabled={running} className={`transition-all duration-300 flex-1 md:flex-none px-2 sm:px-3 py-2.5 md:px-8 md:py-3 rounded-xl md:rounded-2xl text-[10px] sm:text-xs md:text-lg font-black tracking-[0.1em] md:tracking-[0.15em] whitespace-nowrap flex items-center justify-center gap-1 md:gap-2 ${running?"":"active:scale-95 hover:scale-[1.03]"}`} 
+              style={{
+                background:!running?"#f97316":"rgba(249,115,22,0.6)",
+                border:!running?"2px solid #ea580c":"2px solid rgba(234,88,12,0.6)",
+                color:"#ffffff",
+                boxShadow:!running?"0 6px 20px rgba(249,115,22,0.4)":"none",
+                opacity:running?0.8:1,
+                cursor:running?"not-allowed":"pointer"
+              }}>
+              <span className="text-sm md:text-xl mt-0.5">💡</span> TEACH ME
+            </button>
+            <button onClick={()=>reset(lvlIdx)} disabled={running} className={`transition-all duration-300 flex-1 md:flex-none px-2 sm:px-3 py-2.5 md:px-8 md:py-3 rounded-xl md:rounded-2xl text-[10px] sm:text-xs md:text-lg font-black tracking-[0.1em] md:tracking-[0.15em] whitespace-nowrap flex items-center justify-center gap-1 md:gap-2 ${running?"":"active:scale-95 hover:scale-[1.03]"}`} 
+              style={{
+                background:"rgba(255,255,255,0.5)",
+                border:"2px solid #cbd5e1",
+                color:"#475569",
+                boxShadow:"0 2px 4px rgba(0,0,0,0.03)",
+                opacity:running?0.7:1,
+                cursor:running?"not-allowed":"pointer"
+              }}>
+              <span className="text-sm md:text-xl mt-0.5">⟲</span> RESET
+            </button>
           </>}
           {failed&&<>
             <div className="px-2 py-2.5 md:px-4 md:py-3 rounded-xl md:rounded-2xl text-[8px] sm:text-[10px] md:text-xs tracking-wider font-bold whitespace-nowrap" style={{background:"#ffffff",border:"1px solid rgba(239,68,68,0.3)",color:"#f87171"}}>
