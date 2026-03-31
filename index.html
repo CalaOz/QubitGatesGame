@@ -1,37 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Qubit Path - Quantum Lab</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- React & ReactDOM (UMD) -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Framer Motion (UMD) -->
-    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Babel standalone for in-browser JSX parsing -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qubit Path - Quantum Lab</title>
 
-    <style>
-      body { margin: 0; padding: 0; background: #e2e8f0; overflow-x: hidden; }
-    </style>
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Framer Motion -->
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['ui-monospace', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      background-color: #0b1528;
+    }
+    #root {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="text/babel" data-type="module">
-const {  useState, useEffect, useRef, useCallback  } = React;
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+    const { motion, AnimatePresence } = window.Motion || {};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 
 // ─── 20 Levels ─────────────────────────────────────────────
 const LEVELS = [
@@ -206,6 +231,8 @@ function QuantumGame(){
   const[measuring,setMeasuring]=useState(false);
   const[measuredVal,setMeasuredVal]=useState(null);
   const[pendingResult,setPendingResult]=useState(null);
+  const[dragGate,setDragGate]=useState(null);
+  const[dragPos,setDragPos]=useState({x:0, y:0});
   const timerRef=useRef(null);const simT=useRef([]);const slotRefs=useRef([]);
   const trackRef=useRef(null);const startRef=useRef(null);const endRef=useRef(null);
   const[orbX,setOrbX]=useState("4%");
@@ -234,6 +261,43 @@ function QuantumGame(){
     return () => { clearTimeout(tm); window.removeEventListener('resize', calc); };
   }, [qPos, getX]);
 
+  useEffect(() => {
+    if (!dragGate) return;
+    const onMove = (e) => {
+      e.preventDefault();
+      const t = e.touches[0];
+      setDragPos({ x: t.clientX, y: t.clientY });
+    };
+    const onEnd = (e) => {
+      document.body.style.overflow = '';
+      const t = e.changedTouches[0];
+      const cx = t.clientX, cy = t.clientY;
+      const idx = slotRefs.current.findIndex(el => {
+        if(!el) return false;
+        const r = el.getBoundingClientRect();
+        return cx >= r.left - 20 && cx <= r.right + 20 && cy >= r.top - 20 && cy <= r.bottom + 20;
+      });
+      
+      if(idx !== -1 && !slots[idx]) {
+        setSlots(p => { const n=[...p]; n[idx]=dragGate; return n; });
+        setSnapPulse(idx);
+        setTimeout(() => setSnapPulse(null), 400);
+        setSelSlot(null);
+      }
+      setDragGate(null);
+    };
+    
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
+    window.addEventListener('touchcancel', onEnd);
+    
+    return () => {
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+      window.removeEventListener('touchcancel', onEnd);
+    };
+  }, [dragGate, slots]);
+
   const{bs:bursts,fire}=useBurst();
 
   const[stars]=useState(()=>Array.from({length:40},(_,i)=>({id:i,x:Math.random()*100,y:Math.random()*100,s:1+Math.random()*2.5,o:0.15+Math.random()*0.35,d:12+Math.random()*20,dl:Math.random()*10})));
@@ -245,7 +309,7 @@ function QuantumGame(){
     setSlots(Array(l.slots).fill(null));setSelSlot(null);setRunning(false);setQPos(-1);
     setQSt(init);setQVis(vi(init));setBloch(tb(init));
     setLnkVis(l.linked?vi(lk(init,l.linkType)):null);
-    setWon(false);setFailed(false);setNoiseHit(false);setPulse(null);setSnapPulse(null);setTimer(0);setFinalTime(0);setTeachMode(false);setShowTeachModal(false);setMeasuring(false);setMeasuredVal(null);setPendingResult(null);
+    setWon(false);setFailed(false);setNoiseHit(false);setPulse(null);setSnapPulse(null);setTimer(0);setFinalTime(0);setTeachMode(false);setShowTeachModal(false);setMeasuring(false);setMeasuredVal(null);setPendingResult(null);setDragGate(null);
   },[]);
 
   useEffect(()=>{reset(lvlIdx);},[lvlIdx,reset]);
@@ -409,7 +473,7 @@ function QuantumGame(){
         </div>
 
         {/* ═══ Track ═══ */}
-        <div ref={trackRef} className="relative w-full max-w-2xl gTrack overflow-x-auto pt-20 pb-20 scrollbar-hide">
+        <div ref={trackRef} className="relative w-full max-w-2xl gTrack overflow-x-auto py-8 sm:py-10 scrollbar-hide">
           {/* Laser beam */}
           <div className="absolute top-1/2 left-[4%] right-[4%] -translate-y-1/2" style={{height:2,background:"linear-gradient(90deg,transparent,rgba(203,213,225,1) 10%,rgba(203,213,225,1) 90%,transparent)",borderRadius:1}}/>
 
@@ -595,6 +659,7 @@ function QuantumGame(){
                   return(
                     <div key={g} className="flex flex-col items-center gap-1 md:gap-1.5 relative">
                       <button onClick={()=>place(g)} draggable={!running} onDragStart={e=>e.dataTransfer.setData("gate",g)}
+                        onTouchStart={e=>{if(running)return;const t=e.touches[0];setDragGate(g);setDragPos({x:t.clientX,y:t.clientY});document.body.style.overflow='hidden';}}
                         onMouseEnter={()=>setHovGate(g)} onMouseLeave={()=>setHovGate(null)} disabled={running}
                         className={`relative rounded-[10px] md:rounded-xl flex flex-col items-center justify-center transition-all duration-300 select-none ${running?"opacity-40 cursor-not-allowed":"cursor-grab active:cursor-grabbing hover:scale-110 hover:-translate-y-1.5 active:scale-95"} ${lv.gates.length>2?'w-11 h-12 sm:w-12 sm:h-14 md:w-[58px] md:h-[70px]':'w-[50px] h-[54px] sm:w-14 sm:h-16 md:w-[66px] md:h-[78px]'}`}
                         style={{
@@ -694,6 +759,22 @@ const applyGate = (state, gate) => {
       {/* Level Select */}
       {showLvls&&<LevelSelect cur={lv.id} done={done} onSel={i=>{setLvlIdx(i-1);setShowLvls(false);}} onClose={()=>setShowLvls(false)}/>}
 
+      {/* Global Drag Overlay for Touch Devices */}
+      {dragGate && (
+        <div className="fixed pointer-events-none z-[1000] scale-110" style={{
+          left: dragPos.x, top: dragPos.y, transform: "translate(-50%, -50%)"
+        }}>
+          <div className="rounded-xl flex flex-col items-center justify-center w-[58px] h-[70px]"
+            style={{
+              background:"#ffffff", opacity: 0.95,
+              border:`2px solid ${dragGate==="X"?"rgba(239,68,68,0.4)":dragGate==="H"?"rgba(167,139,250,0.4)":"rgba(34,211,238,0.4)"}`,
+              boxShadow:`0 15px 35px ${dragGate==="X"?"rgba(239,68,68,0.4)":dragGate==="H"?"rgba(167,139,250,0.4)":"rgba(34,211,238,0.4)"}`,
+            }}>
+            <span className="text-5xl font-extrabold" style={{color:dragGate==="X"?"#ef4444":dragGate==="H"?"#a78bfa":"#0ea5e9"}}>{dragGate}</span>
+          </div>
+        </div>
+      )}
+
       {/* ═══ Victory ═══ */}
       {won&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(248,250,252,0.85)",backdropFilter:"blur(20px)",animation:"fadeIn 0.4s ease-out"}}>
@@ -770,10 +851,10 @@ const applyGate = (state, gate) => {
     </div>
   );
 }
+// ─────────────────────────────────────────────────────────────────────────────
 
-      // Initialize Application
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<QuantumGame />);
-    </script>
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<QuantumGame />);
+  </script>
 </body>
 </html>
