@@ -473,7 +473,7 @@ function QuantumGame(){
         </div>
 
         {/* ═══ Track ═══ */}
-        <div ref={trackRef} className="relative w-full max-w-2xl gTrack overflow-x-auto pt-[110px] pb-6 sm:pt-[120px] sm:pb-8 scrollbar-hide">
+        <div ref={trackRef} className="relative w-full max-w-2xl gTrack overflow-x-auto py-8 sm:py-10 scrollbar-hide">
           {/* Laser beam */}
           <div className="absolute top-1/2 left-[4%] right-[4%] -translate-y-1/2" style={{height:2,background:"linear-gradient(90deg,transparent,rgba(203,213,225,1) 10%,rgba(203,213,225,1) 90%,transparent)",borderRadius:1}}/>
 
@@ -506,7 +506,6 @@ function QuantumGame(){
                 const isFirst = i === 0;
                 const isEnd = i >= slots.length - 2 && slots.length > 2;
                 const popPos = isFirst ? "left-[-8px] md:left-0" : isEnd ? "right-[-12px] md:right-0" : "left-1/2 -translate-x-1/2";
-                const tailPos = isFirst ? "left-6 md:left-8" : isEnd ? "right-6 md:right-[26px]" : "left-1/2 -translate-x-1/2";
 
                 // Pure Tailwind responsive classes replacing JS innerWidth
                 const szMap = lv.slots > 7 ? 'w-8 h-8 sm:w-9 sm:h-9 md:w-[46px] md:h-[46px]' : lv.slots > 5 ? 'w-9 h-9 sm:w-10 sm:h-10 md:w-[50px] md:h-[50px]' : 'w-11 h-11 md:w-[56px] md:h-[56px]';
@@ -514,9 +513,8 @@ function QuantumGame(){
                 return(
                   <div key={i} className="flex flex-shrink-0 flex-col items-center gap-1 relative">
                     {isSel && !filled && !running && (
-                      <div className={`absolute z-[100] bottom-[calc(100%+8px)] ${popPos} flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-2 rounded-2xl`} 
-                           style={{background:"rgba(255,255,255,0.98)", backdropFilter:"blur(12px)", border:"1px solid rgba(226,232,240,1)", boxShadow:"0 10px 30px rgba(0,0,0,0.15)", animation:"fadeUp 0.2s cubic-bezier(0.34,1.56,0.64,1) forwards"}}>
-                        <div className={`absolute -bottom-1.5 ${tailPos} w-3 h-3 rotate-45`} style={{background:"#ffffff", borderBottom:"1px solid rgba(226,232,240,1)", borderRight:"1px solid rgba(226,232,240,1)"}} />
+                      <div className={`absolute z-[100] top-1/2 -translate-y-1/2 ${popPos} flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-2 rounded-2xl`} 
+                           style={{background:"rgba(255,255,255,0.98)", backdropFilter:"blur(12px)", border:"1px solid rgba(226,232,240,1)", boxShadow:"0 5px 20px rgba(0,0,0,0.15)", animation:"fadeIn 0.15s ease-out forwards"}}>
                         {lv.gates.map(gate => {
                            const isX=gate==="X",isH=gate==="H";
                            const gCol=isX?"#ef4444":isH?"#a78bfa":"#0ea5e9";
