@@ -153,19 +153,37 @@ const Bloch=({th,ph,v})=>{
   return(
     <svg viewBox="0 0 120 120" className="w-full max-w-[260px] sm:max-w-[340px] md:max-w-[420px] aspect-square transition-all duration-300 drop-shadow-sm flex-shrink-0 mx-auto">
       <defs>
-        <radialGradient id="bBg" cx="45%" cy="38%" r="55%"><stop offset="0%" stopColor="rgba(255,255,255,0.9)"/><stop offset="100%" stopColor="rgba(226,232,240,0.8)"/></radialGradient>
+        <radialGradient id="bBg" cx="40%" cy="30%" r="60%">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.8)"/>
+          <stop offset="40%" stopColor="rgba(241,245,249,0.3)"/>
+          <stop offset="85%" stopColor="rgba(148,163,184,0.1)"/>
+          <stop offset="100%" stopColor="rgba(100,116,139,0.4)"/>
+        </radialGradient>
+        <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.9)"/>
+          <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+        </linearGradient>
         <filter id="bGl"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       </defs>
-      <circle cx={cx} cy={cy} r={r} fill="url(#bBg)" stroke="rgba(148,163,184,0.3)" strokeWidth="1.5"/>
-      <path d={`M${cx-r} ${cy} a${r} 12 0 1 0 ${r*2} 0 a${r} 12 0 1 0 -${r*2} 0`} fill="none" stroke="rgba(148,163,184,0.7)" strokeWidth="1.5" strokeDasharray="4 4"/>
-      <line x1={cx} y1={cy-r} x2={cx} y2={cy+r} stroke="rgba(148,163,184,0.6)" strokeWidth="1.5" strokeDasharray="4 4"/>
-      <line x1={cx-r} y1={cy} x2={cx+r} y2={cy} stroke="rgba(148,163,184,0.5)" strokeWidth="1.5" strokeDasharray="4 4"/>
+      
+      {/* Back sphere shell */}
+      <circle cx={cx} cy={cy} r={r} fill="url(#bBg)" stroke="rgba(148,163,184,0.4)" strokeWidth="1.5"/>
+      
+      {/* Grid lines inside */}
+      <path d={`M${cx-r} ${cy} a${r} 12 0 1 0 ${r*2} 0 a${r} 12 0 1 0 -${r*2} 0`} fill="none" stroke="rgba(148,163,184,0.5)" strokeWidth="1.5" strokeDasharray="3 3"/>
+      <line x1={cx} y1={cy-r} x2={cx} y2={cy+r} stroke="rgba(148,163,184,0.4)" strokeWidth="1.5" strokeDasharray="3 3"/>
+      <line x1={cx-r} y1={cy} x2={cx+r} y2={cy} stroke="rgba(148,163,184,0.3)" strokeWidth="1.5" strokeDasharray="3 3"/>
       
       {/* State vector */}
       <g style={{transition:"all 0.5s cubic-bezier(0.34,1.56,0.64,1)"}}>
         <line x1={cx} y1={cy} x2={cx+px} y2={cy+py} stroke={col} strokeWidth="2.5" strokeLinecap="round"/>
-        <circle cx={cx+px} cy={cy+py} r="4" fill={col} filter="url(#bGl)"/>
+        <polygon points="-8,-5 4,0 -8,5" fill={col} filter="url(#bGl)" transform={`translate(${cx+px},${cy+py}) rotate(${Math.atan2(py,px)*180/Math.PI})`} />
+        <polygon points="-8,-5 4,0 -8,5" fill={col} transform={`translate(${cx+px},${cy+py}) rotate(${Math.atan2(py,px)*180/Math.PI})`} />
       </g>
+      
+      {/* Front glass reflection */}
+      <ellipse cx={cx} cy={cy - r*0.4} rx={r*0.65} ry={r*0.22} fill="url(#gloss)" pointerEvents="none" />
+      <path d={`M ${cx - r*0.65} ${cy + r*0.5} A ${r*0.8} ${r*0.4} 0 0 0 ${cx + r*0.65} ${cy + r*0.5}`} stroke="rgba(255,255,255,0.6)" strokeWidth="2" fill="none" strokeLinecap="round" filter="url(#bGl)" pointerEvents="none" />
       
       {/* Axis labels */}
       <g style={{opacity:0.9}}>
