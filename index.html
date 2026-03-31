@@ -454,7 +454,7 @@ function QuantumGame(){
                           :isSel?"rgba(34,211,238,0.06)"
                           :isN?"rgba(234,88,12,0.1)"
                           :"#ffffff",
-                        border:`2px ${isN&&!filled?"dashed":"solid"} ${filled?teachMode?"rgba(234,88,12,0.8)":`${gC}90`:isSel?"rgba(34,211,238,0.5)":isN?"#ea580c":"rgba(226,232,240,1)"}`,
+                        border:`2px ${!filled?"dashed":"solid"} ${filled?teachMode?"rgba(234,88,12,0.8)":`${gC}90`:isSel?"rgba(34,211,238,0.7)":isN?"#ea580c":"rgba(148,163,184,0.6)"}`,
                         boxShadow:filled?teachMode?"0 0 20px rgba(234,88,12,0.3), inset 0 0 10px rgba(234,88,12,0.15)":`0 0 12px rgba(${g==="X"?"239,68,68":g==="H"?"139,92,246":"34,211,238"},0.15)`
                           :isSel?"0 0 12px rgba(226,232,240,1)"
                           :"none",
@@ -467,7 +467,7 @@ function QuantumGame(){
                         <span className={`font-extrabold transition-all duration-300 ${lv.slots>7?'text-sm md:text-base':lv.slots>5?'text-base md:text-lg':'text-lg md:text-xl'}`} style={{color:teachMode?"#fcd34d":gC,textShadow:teachMode?"0 0 20px rgba(234,88,12,0.8)":`0 0 15px ${gC}`}}>{g}</span>
                         {!running&&<div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-slate-400 hover:text-slate-800 transition-colors" style={{background:"#ffffff",border:"1px solid rgba(203,213,225,1)"}}>✕</div>}
                       </>:isN&&!isSel?<span className="text-sm md:text-lg" style={{color:"#ea580c"}}>⚡</span>:
-                      <div className="rounded-full transition-all duration-200" style={{width:isSel?10:5,height:isSel?10:5,background:isSel?"rgba(6,182,212,0.5)":"rgba(6,182,212,0.15)",boxShadow:isSel?"0 0 10px rgba(6,182,212,0.4)":"none"}}/>}
+                      <span className={`font-semibold transition-all duration-200 ${isSel?'scale-125':''}`} style={{fontSize:isSel?22:20, color:isSel?"#0ea5e9":"rgba(148,163,184,0.7)", textShadow:isSel?"0 0 10px rgba(14,165,233,0.4)":"none", marginTop: -2}}>+</span>}
                     </button>
                   </div>
                 );
